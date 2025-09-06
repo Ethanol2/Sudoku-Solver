@@ -16,6 +16,7 @@ public class Square : MonoBehaviour
     [SerializeField] private int _number = 0;
     [SerializeField] private Board _board;
     [SerializeField] private bool[] _isValid;
+    [SerializeField] private bool _locked = false;
 
     // Privates
     private Notepad _notes;
@@ -38,6 +39,7 @@ public class Square : MonoBehaviour
     }
     public Notepad Notes => _notes;
     public Color Colour { get => _button.image.color; set => _button.image.color = value; }
+    public bool Locked { get => _locked; set { _locked = value; _button.targetGraphic.raycastTarget = _numberDisplay.raycastTarget = !_locked; }}
 
     // Events
     public event System.Action<Square> OnChanged;
@@ -62,15 +64,17 @@ public class Square : MonoBehaviour
         if (_board)
             _board.OnNoteModeToggle -= OnNoteModeToggle;
     }
-    public void Init(Board board, int number = 0)
+    public void Init(Board board, int number, bool locked)
     {
         _board = board;
         Number = number;
         _notes = new Notepad(_notePrefab, _notesParent.transform, board);
         _isValid = new bool[] { true, true, true };
 
+        Locked = locked;
+
         // On the remote chance the square is initialized twice, unsub from the event first
-        board.OnNoteModeToggle -= OnNoteModeToggle;
+            board.OnNoteModeToggle -= OnNoteModeToggle;
         board.OnNoteModeToggle += OnNoteModeToggle;
     }
     public void SetValidity(bool valid, int groupIndex)

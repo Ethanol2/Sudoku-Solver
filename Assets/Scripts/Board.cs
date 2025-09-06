@@ -113,7 +113,9 @@ public class Board : MonoBehaviour
 
                 Square newSquare = GameObject.Instantiate(_squarePrefab, canvasQuadrants[qX, qY]);
                 newSquare.name = $"({x}, {y})";
-                newSquare.Init(this, board.Numbers[_boardSize - 1 - y, x]);
+                
+                int number = board.Numbers[_boardSize - 1 - y, x];
+                newSquare.Init(this, number, number != 0);
 
                 RectTransform squareRect = newSquare.transform as RectTransform;
                 SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);
