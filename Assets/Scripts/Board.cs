@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using EditorTools;
 using UnityEngine;
 
@@ -21,15 +23,18 @@ public class Board : MonoBehaviour
     [SerializeField] private Transform _quadrantsParent;
 
     [Header("Debug")]
-    [SerializeField] private SquareGroup[,] quadrants;
-    [SerializeField] private SquareGroup[] columns;
-    [SerializeField] private SquareGroup[] rows;
+    [SerializeField] private bool _initialized = false;
+    [SerializeField] private SquareGroup[,] _quadrants;
+    [SerializeField] private SquareGroup[] _columns;
+    [SerializeField] private SquareGroup[] _rows;
+    [SerializeField] private Square[] _allSquares;
     [SerializeField] private bool _noteMode = false;
     [SerializeField] private int _noteNumber = 0;
 
     // Privates
 
     // Properties
+    public bool initialized => _initialized;
     public int BoardSize => _boardSize;
     public Vector2Int SquareCount => _squareCount;
     public Color NormalColour => _normalColour;
@@ -37,13 +42,14 @@ public class Board : MonoBehaviour
     public bool NoteMode => _noteMode;
     public int NoteNumber => _noteNumber;
 
-    public SquareGroup[,] Quadrants => quadrants;
-    public SquareGroup[] Rows => rows;
-    public SquareGroup[] Columns => columns;
+    public SquareGroup[,] Quadrants => _quadrants;
+    public SquareGroup[] Rows => _rows;
+    public SquareGroup[] Columns => _columns;
+    public Square[] AllSquares => _allSquares;
 
     // Events
     public event System.Action<bool> OnNoteModeToggle;
-
+    
     // Lifecycle
     void Update()
     {
@@ -51,13 +57,17 @@ public class Board : MonoBehaviour
         {
             ToggleNoteMode();
         }
-        for (int n = 1; n < _boardSize + 1; n++)
+        if (Input.GetKeyDown(KeyCode.V))
         {
-            if (Input.GetKeyDown(n.ToString()))
-                _noteNumber = n - 1;
+            ValidateSolved();
         }
-    }
 
+        for (int n = 1; n < _boardSize + 1; n++)
+            {
+                if (Input.GetKeyDown(n.ToString()))
+                    _noteNumber = n;
+            }
+    }
     public void Init(BoardNumbers board)
     {
         _boardSize = board.Numbers.GetLength(0);
@@ -72,16 +82,17 @@ public class Board : MonoBehaviour
 
         RectTransform[,] canvasQuadrants = new RectTransform[_quadrantCount.x, _quadrantCount.y];
 
-        quadrants = new SquareGroup[_quadrantCount.x, _quadrantCount.y];
-        columns = new SquareGroup[_boardSize];
-        rows = new SquareGroup[_boardSize];
+        _quadrants = new SquareGroup[_quadrantCount.x, _quadrantCount.y];
+        _columns = new SquareGroup[_boardSize];
+        _rows = new SquareGroup[_boardSize];
+        List<Square> allSquares = new List<Square>();
 
         int qX = 0;
         for (int x = 0; x < _boardSize; x++)
         {
-            if (columns[x] == null)
+            if (_columns[x] == null)
             {
-                columns[x] = new SquareGroup(this, 0);
+                _columns[x] = new SquareGroup(this, 0);
             }
 
             if ((x - (_squareCount.x * qX)) == _squareCount.x)
@@ -104,34 +115,39 @@ public class Board : MonoBehaviour
                     canvasQuadrants[qX, qY] = newQuadrant;
 
                     // Init the SquareGroup
-                    quadrants[qX, qY] = new SquareGroup(this, 1);
+                    _quadrants[qX, qY] = new SquareGroup(this, 1);
                 }
-                if (rows[y] == null)
+                if (_rows[y] == null)
                 {
-                    rows[y] = new SquareGroup(this, 2);
+                    _rows[y] = new SquareGroup(this, 2);
                 }
 
                 Square newSquare = GameObject.Instantiate(_squarePrefab, canvasQuadrants[qX, qY]);
                 newSquare.name = $"({x}, {y})";
-                
+
                 int number = board.Numbers[_boardSize - 1 - y, x];
                 newSquare.Init(this, number, number != 0);
 
                 RectTransform squareRect = newSquare.transform as RectTransform;
                 SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);
 
-                quadrants[qX, qY].PushSquare(newSquare, false);
-                columns[x].PushSquare(newSquare, false);
-                rows[y].PushSquare(newSquare, false);
+                _quadrants[qX, qY].PushSquare(newSquare, false);
+                _columns[x].PushSquare(newSquare, false);
+                _rows[y].PushSquare(newSquare, false);
+                allSquares.Add(newSquare);
             }
         }
 
-        foreach (SquareGroup group in quadrants)
+        foreach (SquareGroup group in _quadrants)
             group.UpdateGroupState();
-        foreach (SquareGroup group in rows)
+        foreach (SquareGroup group in _rows)
             group.UpdateGroupState();
-        foreach (SquareGroup group in columns)
+        foreach (SquareGroup group in _columns)
             group.UpdateGroupState();
+
+        _allSquares = allSquares.ToArray();
+
+        _initialized = true;
     }
 
     // Utility
@@ -149,6 +165,27 @@ public class Board : MonoBehaviour
     }
     public void ToggleNoteMode() => ToggleNoteMode(!_noteMode);
     public void SetNoteNumber(int number) => _noteNumber = number;
+    public bool ValidateSolved()
+    {
+        bool solved = true;
+
+        solved = solved && ValidateGroups(_quadrants);
+        solved = solved && ValidateGroups(_rows);
+        solved = solved && ValidateGroups(_columns);
+
+        this.Log("Board is valid: " + solved);
+
+        return solved;
+    }
+    private bool ValidateGroups(IEnumerable groups)
+    {
+        bool valid = true;
+        foreach (SquareGroup group in groups)
+        {
+            valid = valid && group.AllSquaresFilled() && group.IsValid;
+        }
+        return valid;
+    }
 
     // Support
     [System.Serializable]

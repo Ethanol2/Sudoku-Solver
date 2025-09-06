@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using EditorTools;
 using TMPro;
 using UnityEngine;
@@ -15,7 +16,7 @@ public class Square : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private int _number = 0;
     [SerializeField] private Board _board;
-    [SerializeField] private bool[] _isValid;
+    [SerializeField] private SquareGroup[] _groups;
     [SerializeField] private bool _locked = false;
 
     // Privates
@@ -40,6 +41,7 @@ public class Square : MonoBehaviour
     public Notepad Notes => _notes;
     public Color Colour { get => _button.image.color; set => _button.image.color = value; }
     public bool Locked { get => _locked; set { _locked = value; _button.targetGraphic.raycastTarget = _numberDisplay.raycastTarget = !_locked; }}
+    public SquareGroup[] Groups => _groups;
 
     // Events
     public event System.Action<Square> OnChanged;
@@ -69,19 +71,17 @@ public class Square : MonoBehaviour
         _board = board;
         Number = number;
         _notes = new Notepad(_notePrefab, _notesParent.transform, board);
-        _isValid = new bool[] { true, true, true };
+        _groups = new SquareGroup[] { null, null, null };
 
         Locked = locked;
 
         // On the remote chance the square is initialized twice, unsub from the event first
-            board.OnNoteModeToggle -= OnNoteModeToggle;
+        board.OnNoteModeToggle -= OnNoteModeToggle;
         board.OnNoteModeToggle += OnNoteModeToggle;
     }
-    public void SetValidity(bool valid, int groupIndex)
+    public void UpdateColour()
     {
-        _isValid[groupIndex] = valid;
-
-        Colour = _isValid[0] && _isValid[1] && _isValid[2] ? _board.NormalColour : _board.WarningColour;
+        Colour = _groups[0].IsValid && _groups[1].IsValid && _groups[2].IsValid ? _board.NormalColour : _board.WarningColour;
     }
 
     private void OnClicked()
@@ -112,6 +112,19 @@ public class Square : MonoBehaviour
     {
         public bool[] Numbers;
         public TMP_Text[] Texts;
+        
+        public int Count
+        {
+            get
+            {
+                int count = 0;
+                foreach (bool n in Numbers)
+                    if (n)
+                        count++;
+
+                return count;
+            }
+        }
 
         public Notepad(TMP_Text notePrefab, Transform notesParent, Board board)
         {
@@ -132,20 +145,35 @@ public class Square : MonoBehaviour
                 if (x - (board.SquareCount.x * y) == board.SquareCount.x)
                     y++;
 
-                board.SetAnchors(rect, x  - (board.SquareCount.x * y), board.SquareCount.y - 1 - y, board.SquareCount.x, board.SquareCount.y, 0f);
+                board.SetAnchors(rect, x - (board.SquareCount.x * y), board.SquareCount.y - 1 - y, board.SquareCount.x, board.SquareCount.y, 0f);
             }
+        }
+        public int[] GetActiveNotes()
+        {
+            List<int> active = new List<int>();
+            for (int i = 1; i < Numbers.Length + 1; i++)
+            {
+                if (Numbers[i - 1])
+                {
+                    active.Add(i);
+                }
+            }
+
+            return active.ToArray();
         }
 
         public bool this[int i]
         {
             get
             {
+                i--;
                 if (i >= Numbers.Length || i < 0)
                     throw new System.IndexOutOfRangeException();
                 return Numbers[i];
             }
             set
             {
+                i--;
                 if (i >= Numbers.Length || i < 0)
                     throw new System.IndexOutOfRangeException();
                 Numbers[i] = value;

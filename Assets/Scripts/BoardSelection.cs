@@ -8,15 +8,23 @@ using Newtonsoft.Json;
 public class BoardSelection : MonoBehaviour
 {
     [Header("Select UI")]
-    [SerializeField] private LayoutGroup selectButtonsParent;
-    [SerializeField] private BoardSelectionButton buttonPrefab;
+    [SerializeField] private Transform _boardsSelectorView;
+    [SerializeField] private LayoutGroup _selectButtonsParent;
+    [SerializeField] private BoardSelectionButton _buttonPrefab;
+
+    [Space]
+    [SerializeField] private Button _returnButton;
 
     [Header("Importing")]
     [SerializeField] private string _filePath = "soduku-boards.json";
     [SerializeField] private Board.BoardNumbers[] _boards;
 
     [Header("References")]
+    [SerializeField] private Board _boardPrefab;
     [SerializeField] private Board _board;
+
+    public event System.Action<Board> OnBoardCreated;
+    public event System.Action OnBoardDestroyed;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -25,12 +33,15 @@ public class BoardSelection : MonoBehaviour
 
         foreach (var board in _boards)
         {
-            BoardSelectionButton button = GameObject.Instantiate(buttonPrefab, selectButtonsParent.transform);
+            BoardSelectionButton button = GameObject.Instantiate(_buttonPrefab, _selectButtonsParent.transform);
             button.Board = board;
             button.Solved = board.Solved;
             button.Difficulty = board.Difficulty;
             button.OnClicked += OnBoardSelected;
         }
+
+        _returnButton.onClick.AddListener(CloseBoard);
+        _returnButton.gameObject.SetActive(false);
     }
 
     private Board.BoardNumbers[] ImportBoards(string path)
@@ -64,8 +75,22 @@ public class BoardSelection : MonoBehaviour
     }
     private void OnBoardSelected(Board.BoardNumbers boardNumbers)
     {
-        _board.gameObject.SetActive(true);
+        _board = GameObject.Instantiate(_boardPrefab);
+
         _board.Init(boardNumbers);
-        this.gameObject.SetActive(false);
+        _boardsSelectorView.gameObject.SetActive(false);
+
+        _returnButton.gameObject.SetActive(true);
+
+        OnBoardCreated?.Invoke(_board);
+    }
+    public void CloseBoard()
+    {
+        Destroy(_board.gameObject);
+
+        _boardsSelectorView.gameObject.SetActive(true);
+        _returnButton.gameObject.SetActive(false);
+
+        OnBoardDestroyed?.Invoke();
     }
 }

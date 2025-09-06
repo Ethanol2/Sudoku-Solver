@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ public class SquareGroup
     }
     public void PushSquare(Square square, bool refreshState = true)
     {
+        square.Groups[_groupIndex] = this;
         square.OnChanged += OnSquareChanged;
         _squares.Add(square);
 
@@ -59,17 +61,37 @@ public class SquareGroup
             nums.Add(square);
         }
 
+        _valid = valid;
+        
         if (updateSquaresColour)
         {
             foreach (Square square in _squares)
             {
-                square.SetValidity(valid, _groupIndex);
+                square.UpdateColour();
             }
         }
 
-        _valid = valid;
         return valid;
     }
+    public bool AllSquaresFilled()
+    {
+        bool filled = true;
+        foreach (Square square in _squares)
+        {
+            filled = filled && square.Number > 0;
+        }
+
+        return filled;
+    }
+    public bool Contains(int num)
+    {
+        foreach (Square square in _squares)
+            if (square.Number == num)
+                return true;
+
+        return false;
+    }
+    public IEnumerator GetEnumerator() => _squares.GetEnumerator();
 
     private void OnSquareChanged(Square square)
     {
