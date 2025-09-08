@@ -757,8 +757,8 @@ MonoBehaviour:
   _boardSelector: {fileID: 1650093164}
   _board: {fileID: 0}
   _cycleLimit: 1000
-  _cyclePauseTime: 0.1
-  _verboseLogging: 1
+  _cyclePauseTime: 0
+  _verboseLogging: 0
   _stepThrough: 0
   _solving: 0
   _abort: 0

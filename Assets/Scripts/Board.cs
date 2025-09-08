@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using EditorTools;
 using UnityEngine;
 
-public class Board : MonoBehaviour
+public class Board : MonoBehaviour, IBoard
 {
     // Inspector
 
@@ -41,7 +41,7 @@ public class Board : MonoBehaviour
     // Privates
 
     // Properties
-    public bool initialized => _initialized;
+    public bool Initialized => _initialized;
     public int BoardSize => _boardSize;
     public Vector2Int SquareCount => _squareCount;
     public Color NormalColour => _normalColour;
@@ -52,7 +52,7 @@ public class Board : MonoBehaviour
     public SquareGroup[,] Quadrants => _quadrants;
     public SquareGroup[] Rows => _rows;
     public SquareGroup[] Columns => _columns;
-    public Square[] AllSquares => _allSquares;
+    public ISquare[] AllSquares => _allSquares;
 
     // Events
     public event System.Action<bool> OnNoteModeToggle;
@@ -74,17 +74,8 @@ public class Board : MonoBehaviour
             if (Input.GetKeyDown(n.ToString()))
                 _noteNumber = n;
         }
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            State current = GetState();
-            SetState(current);
-            State reimported = GetState(); 
-
-            _boardSelection.Export(current, reimported);
-        }
     }
-    public void Init(State state, BoardSelection boardSelection)
+    public void Init(IBoard.State state, BoardSelection boardSelection)
     {
         _boardSelection = boardSelection;
         _boardSize = state.Numbers.GetLength(0);
@@ -182,10 +173,13 @@ public class Board : MonoBehaviour
     public void ToggleNoteMode(bool state)
     {
         _noteMode = state;
+        _noteNumber = Mathf.Clamp(_noteNumber, 1, _boardSize);
         OnNoteModeToggle?.Invoke(_noteMode);
     }
     public void ToggleNoteMode() => ToggleNoteMode(!_noteMode);
     public void SetNoteNumber(int number) => _noteNumber = number;
+
+    // Interface
     public bool ValidateSolved()
     {
         if (_validated)
@@ -193,18 +187,16 @@ public class Board : MonoBehaviour
 
         bool solved = true;
 
-        solved = solved && ValidateGroups(_quadrants);
-        solved = solved && ValidateGroups(_rows);
-        solved = solved && ValidateGroups(_columns);
+        solved = solved && ValidateGroups(Quadrants);
+        solved = solved && ValidateGroups(Rows);
+        solved = solved && ValidateGroups(Columns);
 
-        //this.Log("Board is valid: " + solved);
-
-        _validated = true;
         _solved = solved;
+        _validated = true;
 
         return solved;
     }
-    private bool ValidateGroups(IEnumerable groups)
+    protected bool ValidateGroups(IEnumerable groups)
     {
         bool valid = true;
         foreach (SquareGroup group in groups)
@@ -213,13 +205,13 @@ public class Board : MonoBehaviour
         }
         return valid;
     }
-    public State GetState()
+    public IBoard.State GetState()
     {
-        State export = new State();
-        export.Numbers = new int[_boardSize, _boardSize];
+        IBoard.State export = new IBoard.State();
+        export.Numbers = new int[BoardSize, BoardSize];
 
         int x = 0, y = 0;
-        for (int i = 0; i < AllSquares.Length; i++)
+        for (int i = 0; i < _allSquares.Length; i++)
         {
             if (x >= _boardSize)
             {
@@ -227,7 +219,7 @@ public class Board : MonoBehaviour
                 x = 0;
             }
 
-            export.Numbers[_boardSize - 1 - x, y] = _allSquares[i];
+            export.Numbers[_boardSize - 1 - x, y] = AllSquares[i].Number;
 
             x++;
         }
@@ -236,7 +228,192 @@ public class Board : MonoBehaviour
 
         return export;
     }
-    public void SetState(State state)
+    public void SetState(IBoard.State state)
+    {
+        if (!_initialized)
+        {
+            this.Log("Board not initialized. Call Init() instead");
+            return;
+        }
+
+        if (state.Numbers.GetLength(0) > _boardSize)
+        {
+            this.LogError($"Wrong size state passed to board. Current: {_boardSize}, State: {state.Numbers.GetLength(0)}");
+            return;
+        }
+
+        int x = 0, y = 0;
+        for (int i = 0; i < _allSquares.Length; i++)
+        {
+            if (x >= _boardSize)
+            {
+                y++;
+                x = 0;
+            }
+
+            AllSquares[i].Number = state.Numbers[_boardSize - 1 - x, y];
+
+            x++;
+        }
+
+        _solved = state.Solved;
+    }
+    private void OnSquareChanged(ISquare square) => _validated = false;
+
+    public static implicit operator DataOnlyBoard(Board board) => new DataOnlyBoard(board.GetState());
+}
+
+[System.Serializable]
+public class DataOnlyBoard : IBoard
+{
+    [SerializeField] private int _boardSize = 9;
+    [SerializeField] private Vector2Int _squareCount = new Vector2Int(3, 3);
+    [SerializeField] private Vector2Int _quadrantCount;
+
+    [SerializeField] private bool _validated = false;
+    [SerializeField] private bool _solved = false;
+
+    [Space]
+    [SerializeField] private SquareGroup[,] _quadrants;
+    [SerializeField] private SquareGroup[] _columns;
+    [SerializeField] private SquareGroup[] _rows;
+    [SerializeField] private DataOnlySquare[] _allSquares;
+
+    // Privates
+
+    // Properties
+    public int BoardSize => _boardSize;
+    public Vector2Int SquareCount => _squareCount;
+
+    public SquareGroup[,] Quadrants => _quadrants;
+    public SquareGroup[] Rows => _rows;
+    public SquareGroup[] Columns => _columns;
+    public ISquare[] AllSquares => _allSquares;
+
+    public DataOnlyBoard(IBoard.State state)
+    {
+        _boardSize = state.Numbers.GetLength(0);
+
+        float sqrtSize = Mathf.Sqrt(_boardSize);
+        _squareCount = new Vector2Int(
+            Mathf.CeilToInt(sqrtSize),
+            Mathf.FloorToInt(sqrtSize)
+        );
+
+        _quadrantCount = new Vector2Int(_squareCount.y, _squareCount.x);
+
+        _quadrants = new SquareGroup[_quadrantCount.x, _quadrantCount.y];
+        _columns = new SquareGroup[_boardSize];
+        _rows = new SquareGroup[_boardSize];
+
+        List<DataOnlySquare> allSquares = new List<DataOnlySquare>();
+
+        int qX = 0;
+        for (int x = 0; x < _boardSize; x++)
+        {
+            if (_columns[x] == null)
+            {
+                _columns[x] = new SquareGroup(this, 0);
+            }
+
+            if ((x - (_squareCount.x * qX)) == _squareCount.x)
+                qX++;
+
+            int qY = 0;
+            for (int y = 0; y < _boardSize; y++)
+            {
+                if ((y - (_squareCount.y * qY)) == _squareCount.y)
+                    qY++;
+
+                if (_quadrants[qX, qY] == null)
+                {
+                    _quadrants[qX, qY] = new SquareGroup(this, 1);
+                }
+                if (_rows[y] == null)
+                {
+                    _rows[y] = new SquareGroup(this, 2);
+                }
+
+                int number = state.Numbers[_boardSize - 1 - y, x];
+
+                DataOnlySquare newSquare = new DataOnlySquare(
+                    this,
+                    $"({x}, {y})",
+                    number,
+                    number != 0);
+
+                _quadrants[qX, qY].PushSquare(newSquare, false);
+                _columns[x].PushSquare(newSquare, false);
+                _rows[y].PushSquare(newSquare, false);
+                allSquares.Add(newSquare);
+
+                newSquare.OnChanged += OnSquareChanged;
+            }
+        }
+
+        foreach (SquareGroup group in _quadrants)
+            group.UpdateGroupState();
+        foreach (SquareGroup group in _rows)
+            group.UpdateGroupState();
+        foreach (SquareGroup group in _columns)
+            group.UpdateGroupState();
+
+        _allSquares = allSquares.ToArray();
+
+        _solved = state.Solved;
+        _validated = true;
+    }
+
+    // Interface
+    public bool ValidateSolved()
+    {
+        if (_validated)
+            return _solved;
+
+        bool solved = true;
+
+        solved = solved && ValidateGroups(Quadrants);
+        solved = solved && ValidateGroups(Rows);
+        solved = solved && ValidateGroups(Columns);
+
+        _solved = solved;
+        _validated = true;
+
+        return solved;
+    }
+    protected bool ValidateGroups(IEnumerable groups)
+    {
+        bool valid = true;
+        foreach (SquareGroup group in groups)
+        {
+            valid = valid && group.AllSquaresFilled() && group.IsValid;
+        }
+        return valid;
+    }
+    public IBoard.State GetState()
+    {
+        IBoard.State export = new IBoard.State();
+        export.Numbers = new int[BoardSize, BoardSize];
+
+        int x = 0, y = 0;
+        for (int i = 0; i < _allSquares.Length; i++)
+        {
+            if (x >= _boardSize)
+            {
+                y++;
+                x = 0;
+            }
+
+            export.Numbers[_boardSize - 1 - x, y] = AllSquares[i].Number;
+
+            x++;
+        }
+
+        export.Solved = ValidateSolved();
+
+        return export;
+    }
+    public void SetState(IBoard.State state)
     {
         if (state.Numbers.GetLength(0) > _boardSize)
         {
@@ -245,7 +422,7 @@ public class Board : MonoBehaviour
         }
 
         int x = 0, y = 0;
-        for (int i = 0; i < AllSquares.Length; i++)
+        for (int i = 0; i < _allSquares.Length; i++)
         {
             if (x >= _boardSize)
             {
@@ -253,18 +430,32 @@ public class Board : MonoBehaviour
                 x = 0;
             }
 
-            _allSquares[i].Number = state.Numbers[_boardSize - 1 - x, y];
+            AllSquares[i].Number = state.Numbers[_boardSize - 1 - x, y];
 
             x++;
         }
 
         _solved = state.Solved;
-        _validated = true;
     }
-    private void OnSquareChanged(Square square)
-    {
-        _validated = false;
-    }
+    private void OnSquareChanged(ISquare square) => _validated = false;
+
+    public static implicit operator IBoard.State(DataOnlyBoard board) => board.GetState();
+}
+
+public interface IBoard
+{
+    public int BoardSize { get; }
+    public Vector2Int SquareCount { get; }
+
+    public SquareGroup[,] Quadrants { get; }
+    public SquareGroup[] Rows { get; }
+    public SquareGroup[] Columns { get; }
+    public ISquare[] AllSquares { get; }
+
+    // Utility
+    public bool ValidateSolved();
+    public State GetState();
+    public void SetState(State state);
 
     // Support
     [System.Serializable]
@@ -272,6 +463,24 @@ public class Board : MonoBehaviour
     {
         public string Difficulty;
         public int[,] Numbers;
-        public bool Solved;
+        public bool Solved = false;
+
+        public static State GenerateEmpty(int size)
+        {
+            State state = new State();
+            state.Numbers = new int[size, size];
+
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    state.Numbers[x, y] = 0;
+                }
+            }
+
+            state.Difficulty = "Empty";
+
+            return state;
+        }
     }
 }

@@ -6,8 +6,8 @@ using UnityEngine;
 public class SquareGroup
 {
     [Header("References")]
-    [SerializeField] private List<Square> _squares;
-    [SerializeField] private Board _board;
+    [SerializeField] private List<ISquare> _squares;
+    [SerializeField] private IBoard _board;
 
     [Header("State")]
     [SerializeField] private bool _valid = false;
@@ -16,27 +16,30 @@ public class SquareGroup
     [SerializeField] private int _groupIndex = -1;
 
     public bool IsValid => _valid;
-    public Square this[int i] { get => _squares[i]; set => _squares[i] = value; }
+    public ISquare this[int i] { get => _squares[i]; set => _squares[i] = value; }
 
-    public SquareGroup(Board board, int groupIndex)
+    public event System.Action OnValidityChanged;
+
+    public SquareGroup(IBoard board, int groupIndex)
     {
         _board = board;
-        _squares = new List<Square>();
+        _squares = new List<ISquare>();
         _groupIndex = groupIndex;
     }
-    public void PushSquare(Square square, bool refreshState = true)
+    public void PushSquare(ISquare square, bool refreshState = true)
     {
-        square.Groups[_groupIndex] = this;
+        square.AddGroup(this, _groupIndex);
         square.OnChanged += OnSquareChanged;
         _squares.Add(square);
 
         if (refreshState)
             UpdateGroupState();
     }
-    public Square PopSquare(int index = 0, bool refreshState = true)
+    public ISquare PopSquare(bool refreshState = true) => PopSquare(_squares.Count - 1, refreshState);
+    public ISquare PopSquare(int index, bool refreshState = true)
     {
-        Square pop = _squares[_squares.Count - 1];
-        _squares.RemoveAt(_squares.Count - 1);
+        ISquare pop = _squares[index];
+        _squares.RemoveAt(index);
 
         if (refreshState)
             UpdateGroupState();
@@ -44,31 +47,27 @@ public class SquareGroup
         return pop;
     }
 
-    public bool UpdateGroupState(bool updateSquaresColour = true)
+    public bool UpdateGroupState()
     {
         List<int> nums = new List<int>();
         bool valid = true;
 
-        foreach (Square square in _squares)
+        foreach (ISquare square in _squares)
         {
-            if (square == 0)
+            if (square.Number == 0)
                 continue;
-            if (nums.Contains(square))
-                {
-                    valid = false;
-                    break;
-                }
-            nums.Add(square);
+            if (nums.Contains(square.Number))
+            {
+                valid = false;
+                break;
+            }
+            nums.Add(square.Number);
         }
 
-        _valid = valid;
-        
-        if (updateSquaresColour)
+        if (_valid != valid)
         {
-            foreach (Square square in _squares)
-            {
-                square.UpdateColour();
-            }
+            _valid = valid;
+            OnValidityChanged?.Invoke();
         }
 
         return valid;
@@ -76,7 +75,7 @@ public class SquareGroup
     public bool AllSquaresFilled()
     {
         bool filled = true;
-        foreach (Square square in _squares)
+        foreach (ISquare square in _squares)
         {
             filled = filled && square.Number > 0;
         }
@@ -85,7 +84,7 @@ public class SquareGroup
     }
     public bool Contains(int num)
     {
-        foreach (Square square in _squares)
+        foreach (ISquare square in _squares)
             if (square.Number == num)
                 return true;
 
@@ -93,7 +92,7 @@ public class SquareGroup
     }
     public IEnumerator GetEnumerator() => _squares.GetEnumerator();
 
-    private void OnSquareChanged(Square square)
+    private void OnSquareChanged(ISquare square)
     {
         UpdateGroupState();
     }

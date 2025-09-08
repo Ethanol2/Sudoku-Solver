@@ -17,7 +17,7 @@ public class BoardSelection : MonoBehaviour
 
     [Header("Importing")]
     [SerializeField] private string _filePath = "soduku-boards.json";
-    [SerializeField] private Board.State[] _boards;
+    [SerializeField] private IBoard.State[] _boards;
 
     [Header("References")]
     [SerializeField] private Board _boardPrefab;
@@ -44,12 +44,12 @@ public class BoardSelection : MonoBehaviour
         _returnButton.gameObject.SetActive(false);
     }
 
-    private Board.State[] ImportBoards(string path)
+    private IBoard.State[] ImportBoards(string path)
     {
         if (!File.Exists(path))
         {
             this.LogError($"File at \"{path}\" doesn't exist");
-            return new Board.State[0];
+            return new IBoard.State[0];
         }
 
         string fileContents;
@@ -60,20 +60,20 @@ public class BoardSelection : MonoBehaviour
             file.Close();
         }
 
-        Board.State[] boards;
+        IBoard.State[] boards;
         try
         {
-            boards = JsonConvert.DeserializeObject<Board.State[]>(fileContents);
+            boards = JsonConvert.DeserializeObject<IBoard.State[]>(fileContents);
         }
         catch (System.Exception e)
         {
             this.Log($"Something went wrong while importing boards from \"{path}\" =>\n{e}");
-            return new Board.State[0];
+            return new IBoard.State[0];
         }
 
         return boards;
     }
-    private void OnBoardSelected(Board.State boardNumbers)
+    private void OnBoardSelected(IBoard.State boardNumbers)
     {
         _board = GameObject.Instantiate(_boardPrefab);
 
@@ -94,7 +94,7 @@ public class BoardSelection : MonoBehaviour
         OnBoardDestroyed?.Invoke();
     }
 
-    public void Export(params Board.State[] states)
+    public void Export(params IBoard.State[] states)
     {
         string export = JsonConvert.SerializeObject(states, Formatting.Indented);
         export = export.Replace(",\n      ", ",");

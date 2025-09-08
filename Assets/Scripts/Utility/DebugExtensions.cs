@@ -4,22 +4,22 @@ namespace EditorTools
 {
     public static class DebugExtension
     {
-        public static void Log(this MonoBehaviour origine, object message) => Log(origine, message, null);
-        public static void Log(this MonoBehaviour origine, object message, Object context)
+        public static void Log(this object origin, object message) => Log(origin, message, null);
+        public static void Log(this object origin, object message, Object context)
         {
-            Debug.Log($"[{origine.GetType().Name}] {message}", context);
+            Debug.Log($"[{origin.GetType().Name}] {message}", context);
         }
 
-        public static void LogWarning(this MonoBehaviour origine, object message) => LogWarning(origine, message, null);
-        public static void LogWarning(this MonoBehaviour origine, object message, Object context)
+        public static void LogWarning(this object origin, object message) => LogWarning(origin, message, null);
+        public static void LogWarning(this object origin, object message, Object context)
         {
-            Debug.LogWarning($"[{origine.GetType().Name}] {message}", context);
+            Debug.LogWarning($"[{origin.GetType().Name}] {message}", context);
         }
 
-        public static void LogError(this MonoBehaviour origine, object message) => LogError(origine, message, null);
-        public static void LogError(this MonoBehaviour origine, object message, Object context)
+        public static void LogError(this object origin, object message) => LogError(origin, message, null);
+        public static void LogError(this object origin, object message, Object context)
         {
-            Debug.LogError($"[{origine.GetType().Name}] {message}", context);
+            Debug.LogError($"[{origin.GetType().Name}] {message}", context);
         }
     }
 }
