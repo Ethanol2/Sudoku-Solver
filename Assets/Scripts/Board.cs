@@ -19,17 +19,24 @@ public class Board : MonoBehaviour
     [SerializeField] private float _squareAnchorPadding = 0.005f;
 
     [Header("References")]
+    [SerializeField] private BoardSelection _boardSelection;
+
+    [Space]
     [SerializeField] private Square _squarePrefab;
     [SerializeField] private Transform _quadrantsParent;
 
     [Header("Debug")]
     [SerializeField] private bool _initialized = false;
+    [SerializeField] private bool _validated = false;
+    [SerializeField] private bool _solved = false;
+
+    [Space]
     [SerializeField] private SquareGroup[,] _quadrants;
     [SerializeField] private SquareGroup[] _columns;
     [SerializeField] private SquareGroup[] _rows;
     [SerializeField] private Square[] _allSquares;
     [SerializeField] private bool _noteMode = false;
-    [SerializeField] private int _noteNumber = 0;
+    [SerializeField] private int _noteNumber = 1;
 
     // Privates
 
@@ -49,7 +56,7 @@ public class Board : MonoBehaviour
 
     // Events
     public event System.Action<bool> OnNoteModeToggle;
-    
+
     // Lifecycle
     void Update()
     {
@@ -63,14 +70,24 @@ public class Board : MonoBehaviour
         }
 
         for (int n = 1; n < _boardSize + 1; n++)
-            {
-                if (Input.GetKeyDown(n.ToString()))
-                    _noteNumber = n;
-            }
+        {
+            if (Input.GetKeyDown(n.ToString()))
+                _noteNumber = n;
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            State current = GetState();
+            SetState(current);
+            State reimported = GetState(); 
+
+            _boardSelection.Export(current, reimported);
+        }
     }
-    public void Init(BoardNumbers board)
+    public void Init(State state, BoardSelection boardSelection)
     {
-        _boardSize = board.Numbers.GetLength(0);
+        _boardSelection = boardSelection;
+        _boardSize = state.Numbers.GetLength(0);
 
         float sqrtSize = Mathf.Sqrt(_boardSize);
         _squareCount = new Vector2Int(
@@ -125,7 +142,7 @@ public class Board : MonoBehaviour
                 Square newSquare = GameObject.Instantiate(_squarePrefab, canvasQuadrants[qX, qY]);
                 newSquare.name = $"({x}, {y})";
 
-                int number = board.Numbers[_boardSize - 1 - y, x];
+                int number = state.Numbers[_boardSize - 1 - y, x];
                 newSquare.Init(this, number, number != 0);
 
                 RectTransform squareRect = newSquare.transform as RectTransform;
@@ -135,6 +152,8 @@ public class Board : MonoBehaviour
                 _columns[x].PushSquare(newSquare, false);
                 _rows[y].PushSquare(newSquare, false);
                 allSquares.Add(newSquare);
+
+                newSquare.OnChanged += OnSquareChanged;
             }
         }
 
@@ -147,6 +166,8 @@ public class Board : MonoBehaviour
 
         _allSquares = allSquares.ToArray();
 
+        _solved = state.Solved;
+        _validated = true;
         _initialized = true;
     }
 
@@ -167,13 +188,19 @@ public class Board : MonoBehaviour
     public void SetNoteNumber(int number) => _noteNumber = number;
     public bool ValidateSolved()
     {
+        if (_validated)
+            return _solved;
+
         bool solved = true;
 
         solved = solved && ValidateGroups(_quadrants);
         solved = solved && ValidateGroups(_rows);
         solved = solved && ValidateGroups(_columns);
 
-        this.Log("Board is valid: " + solved);
+        //this.Log("Board is valid: " + solved);
+
+        _validated = true;
+        _solved = solved;
 
         return solved;
     }
@@ -186,10 +213,62 @@ public class Board : MonoBehaviour
         }
         return valid;
     }
+    public State GetState()
+    {
+        State export = new State();
+        export.Numbers = new int[_boardSize, _boardSize];
+
+        int x = 0, y = 0;
+        for (int i = 0; i < AllSquares.Length; i++)
+        {
+            if (x >= _boardSize)
+            {
+                y++;
+                x = 0;
+            }
+
+            export.Numbers[_boardSize - 1 - x, y] = _allSquares[i];
+
+            x++;
+        }
+
+        export.Solved = ValidateSolved();
+
+        return export;
+    }
+    public void SetState(State state)
+    {
+        if (state.Numbers.GetLength(0) > _boardSize)
+        {
+            this.LogError($"Wrong size state passed to board. Current: {_boardSize}, State: {state.Numbers.GetLength(0)}");
+            return;
+        }
+
+        int x = 0, y = 0;
+        for (int i = 0; i < AllSquares.Length; i++)
+        {
+            if (x >= _boardSize)
+            {
+                y++;
+                x = 0;
+            }
+
+            _allSquares[i].Number = state.Numbers[_boardSize - 1 - x, y];
+
+            x++;
+        }
+
+        _solved = state.Solved;
+        _validated = true;
+    }
+    private void OnSquareChanged(Square square)
+    {
+        _validated = false;
+    }
 
     // Support
     [System.Serializable]
-    public class BoardNumbers
+    public class State
     {
         public string Difficulty;
         public int[,] Numbers;

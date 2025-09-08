@@ -17,7 +17,7 @@ public class BoardSelection : MonoBehaviour
 
     [Header("Importing")]
     [SerializeField] private string _filePath = "soduku-boards.json";
-    [SerializeField] private Board.BoardNumbers[] _boards;
+    [SerializeField] private Board.State[] _boards;
 
     [Header("References")]
     [SerializeField] private Board _boardPrefab;
@@ -44,12 +44,12 @@ public class BoardSelection : MonoBehaviour
         _returnButton.gameObject.SetActive(false);
     }
 
-    private Board.BoardNumbers[] ImportBoards(string path)
+    private Board.State[] ImportBoards(string path)
     {
         if (!File.Exists(path))
         {
             this.LogError($"File at \"{path}\" doesn't exist");
-            return new Board.BoardNumbers[0];
+            return new Board.State[0];
         }
 
         string fileContents;
@@ -60,24 +60,24 @@ public class BoardSelection : MonoBehaviour
             file.Close();
         }
 
-        Board.BoardNumbers[] boards;
+        Board.State[] boards;
         try
         {
-            boards = JsonConvert.DeserializeObject<Board.BoardNumbers[]>(fileContents);
+            boards = JsonConvert.DeserializeObject<Board.State[]>(fileContents);
         }
         catch (System.Exception e)
         {
             this.Log($"Something went wrong while importing boards from \"{path}\" =>\n{e}");
-            return new Board.BoardNumbers[0];
+            return new Board.State[0];
         }
 
         return boards;
     }
-    private void OnBoardSelected(Board.BoardNumbers boardNumbers)
+    private void OnBoardSelected(Board.State boardNumbers)
     {
         _board = GameObject.Instantiate(_boardPrefab);
 
-        _board.Init(boardNumbers);
+        _board.Init(boardNumbers, this);
         _boardsSelectorView.gameObject.SetActive(false);
 
         _returnButton.gameObject.SetActive(true);
@@ -92,5 +92,17 @@ public class BoardSelection : MonoBehaviour
         _returnButton.gameObject.SetActive(false);
 
         OnBoardDestroyed?.Invoke();
+    }
+
+    public void Export(params Board.State[] states)
+    {
+        string export = JsonConvert.SerializeObject(states, Formatting.Indented);
+        export = export.Replace(",\n      ", ",");
+
+        using StreamWriter file = new StreamWriter("board-export.json");
+        {
+            file.Write(export);
+            file.Close();
+        }
     }
 }

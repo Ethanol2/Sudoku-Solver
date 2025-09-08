@@ -148,7 +148,7 @@ public class Square : MonoBehaviour
                 board.SetAnchors(rect, x - (board.SquareCount.x * y), board.SquareCount.y - 1 - y, board.SquareCount.x, board.SquareCount.y, 0f);
             }
         }
-        public int[] GetActiveNotes()
+        public List<int> GetActiveNotesList()
         {
             List<int> active = new List<int>();
             for (int i = 1; i < Numbers.Length + 1; i++)
@@ -159,8 +159,9 @@ public class Square : MonoBehaviour
                 }
             }
 
-            return active.ToArray();
+            return active;
         }
+        public int[] GetActiveNotes() => GetActiveNotesList().ToArray();
 
         public bool this[int i]
         {

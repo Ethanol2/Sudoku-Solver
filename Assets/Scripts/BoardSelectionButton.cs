@@ -8,11 +8,11 @@ public class BoardSelectionButton : MonoBehaviour
     [SerializeField] private TMP_Text _diffText;
     [SerializeField] private TMP_Text _sizeText;
     [SerializeField] private TMP_Text _solvedText;
-    [SerializeField] private Board.BoardNumbers _board;
+    [SerializeField] private Board.State _board;
 
     public string Difficulty { get => _diffText.text; set => _diffText.text = value; }
     public bool Solved { set => _solvedText.text = value ? "Solved" : ""; }
-    public Board.BoardNumbers Board
+    public Board.State Board
     {
         get => _board;
         set
@@ -22,7 +22,7 @@ public class BoardSelectionButton : MonoBehaviour
                 _sizeText.text = $"{value.Numbers.GetLength(0)}x{value.Numbers.GetLength(1)}"; }
     }
 
-    public event System.Action<Board.BoardNumbers> OnClicked;
+    public event System.Action<Board.State> OnClicked;
 
     void OnEnable()
     {
