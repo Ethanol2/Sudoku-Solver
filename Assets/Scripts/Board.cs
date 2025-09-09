@@ -146,7 +146,7 @@ public class Board : MonoBehaviour, IBoard
     }
 
     // Utility
-    public void SetAnchors(RectTransform rect, int x, int y, int xCount, int yCount, float padding)
+    public static void SetAnchors(RectTransform rect, int x, int y, int xCount, int yCount, float padding)
     {
         rect.anchorMin = new Vector2(x * (1f / xCount), y * (1f / yCount)) + (Vector2.one * padding);
         rect.anchorMax = new Vector2((x + 1) * (1f / xCount), (y + 1) * (1f / yCount)) - (Vector2.one * padding);

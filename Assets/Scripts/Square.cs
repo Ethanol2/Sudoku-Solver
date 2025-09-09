@@ -141,7 +141,7 @@ public class Square : MonoBehaviour, ISquare
                 if (x - (board.SquareCount.x * y) == board.SquareCount.x)
                     y++;
 
-                board.SetAnchors(rect, x - (board.SquareCount.x * y), board.SquareCount.y - 1 - y, board.SquareCount.x, board.SquareCount.y, 0f);
+                Board.SetAnchors(rect, x - (board.SquareCount.x * y), board.SquareCount.y - 1 - y, board.SquareCount.x, board.SquareCount.y, 0f);
             }
         }
         protected override void SetNote(int i, bool value)
