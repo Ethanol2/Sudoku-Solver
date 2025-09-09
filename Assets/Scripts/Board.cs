@@ -58,23 +58,6 @@ public class Board : MonoBehaviour, IBoard
     public event System.Action<bool> OnNoteModeToggle;
 
     // Lifecycle
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            ToggleNoteMode();
-        }
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            ValidateSolved();
-        }
-
-        for (int n = 1; n < _boardSize + 1; n++)
-        {
-            if (Input.GetKeyDown(n.ToString()))
-                _noteNumber = n;
-        }
-    }
     public void Init(IBoard.State state, BoardSelection boardSelection)
     {
         _boardSelection = boardSelection;

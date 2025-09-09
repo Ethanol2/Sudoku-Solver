@@ -15,13 +15,12 @@ public class BoardSelection : MonoBehaviour
     [Space]
     [SerializeField] private Button _returnButton;
 
-    [Header("Importing")]
-    [SerializeField] private string _filePath = "soduku-boards.json";
-    [SerializeField] private IBoard.State[] _boards;
-
     [Header("References")]
     [SerializeField] private Board _boardPrefab;
     [SerializeField] private Board _board;
+
+    [Space]
+    [SerializeField] private TextAsset _defaultBoards;
 
     public event System.Action<Board> OnBoardCreated;
     public event System.Action OnBoardDestroyed;
@@ -29,9 +28,9 @@ public class BoardSelection : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _boards = ImportBoards(_filePath);
+        var boards = ImporterExporter.ParseBoardsJson(_defaultBoards.text);
 
-        foreach (var board in _boards)
+        foreach (IBoard.State board in boards)
         {
             BoardSelectionButton button = GameObject.Instantiate(_buttonPrefab, _selectButtonsParent.transform);
             button.Board = board;
@@ -42,36 +41,6 @@ public class BoardSelection : MonoBehaviour
 
         _returnButton.onClick.AddListener(CloseBoard);
         _returnButton.gameObject.SetActive(false);
-    }
-
-    private IBoard.State[] ImportBoards(string path)
-    {
-        if (!File.Exists(path))
-        {
-            this.LogError($"File at \"{path}\" doesn't exist");
-            return new IBoard.State[0];
-        }
-
-        string fileContents;
-
-        using StreamReader file = new StreamReader(path);
-        {
-            fileContents = file.ReadToEnd();
-            file.Close();
-        }
-
-        IBoard.State[] boards;
-        try
-        {
-            boards = JsonConvert.DeserializeObject<IBoard.State[]>(fileContents);
-        }
-        catch (System.Exception e)
-        {
-            this.Log($"Something went wrong while importing boards from \"{path}\" =>\n{e}");
-            return new IBoard.State[0];
-        }
-
-        return boards;
     }
     private void OnBoardSelected(IBoard.State boardNumbers)
     {
@@ -94,15 +63,4 @@ public class BoardSelection : MonoBehaviour
         OnBoardDestroyed?.Invoke();
     }
 
-    public void Export(params IBoard.State[] states)
-    {
-        string export = JsonConvert.SerializeObject(states, Formatting.Indented);
-        export = export.Replace(",\n      ", ",");
-
-        using StreamWriter file = new StreamWriter("board-export.json");
-        {
-            file.Write(export);
-            file.Close();
-        }
-    }
 }

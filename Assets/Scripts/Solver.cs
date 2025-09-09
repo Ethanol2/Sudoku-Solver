@@ -33,6 +33,7 @@ public class Solver : MonoBehaviour
         _boardSelector.OnBoardDestroyed -= OnBoardDestroyed;
     }
 
+#if UNITY_EDITOR
     // Update is called once per frame
     void Update()
     {
@@ -57,6 +58,7 @@ public class Solver : MonoBehaviour
                 StartCoroutine(GenerateBoard(_board, Input.GetKey(KeyCode.LeftShift)));
         }
     }
+#endif
 
     private void OnBoardCreated(Board board)
     {
