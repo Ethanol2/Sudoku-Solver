@@ -119,16 +119,13 @@ public class Square : MonoBehaviour, ISquare
             _notes[i + 1] = valid;
         }
     }
-    public int ValidNumbersCount(int exclusion = -1)
+    public int ValidNumbersCount()
     {
         int count = 0;
         for (int i = 0; i < _board.BoardSize; i++)
         {
             foreach (SquareGroup group in _groups)
             {
-                if (i + 1 == exclusion)
-                    continue;
-
                 if (group.ContainsByIndex(i))
                 {
                     break;
@@ -271,14 +268,11 @@ public class DataOnlySquare : ISquare
             _notes[i + 1] = valid;
         }
     }
-    public int ValidNumbersCount(int exclusion = -1)
+    public int ValidNumbersCount()
     {
         int count = 0;
         for (int i = 0; i < _board.BoardSize; i++)
         {
-            if (i + 1 == exclusion)
-                continue;
-
             foreach (SquareGroup group in _groups)
             {
                 if (group.ContainsByIndex(i))
@@ -309,7 +303,7 @@ public interface ISquare
     public void AddGroup(SquareGroup group, int index);
     public SquareGroup GetGroup(int index);
     public void SetNotes();
-    public int ValidNumbersCount(int exclusion);
+    public int ValidNumbersCount();
 
     [System.Serializable]
     public class Notepad

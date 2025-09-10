@@ -147,24 +147,13 @@ public class Solver : MonoBehaviour
             {
                 if (square.Number == 0)
                 {
-                    for (int n = 1; n < board.BoardSize + 1; n++)
+                    square.SetNotes();
+
+                    if (square.Notes.Count == 0)
                     {
-                        bool groupsContainNum = false;
-
-                        for (int k = 0; k < square.GroupCount; k++)
-                            groupsContainNum = groupsContainNum || square.GetGroup(k).Contains(n);
-
-                        square.Notes[n] = !groupsContainNum;
+                        yield break;
                     }
-
-                    int noteCount = square.Notes.Count;
-
-                    if (noteCount == 0)
-                    {
-                        goodSquareCount = -1;
-                        break;
-                    }
-                    else if (noteCount == 1)
+                    else if (square.Notes.Count == 1)
                     {
                         int[] notes = square.Notes.GetActiveNotes();
                         square.Number = square.Notes.GetActiveNotes()[0];
@@ -183,61 +172,46 @@ public class Solver : MonoBehaviour
                 Verbose("No good squares", recursionDepth);
 
                 IBoard.State state = board.GetState();
-                int noteDepth = 2;
 
-                while (noteDepth <= board.BoardSize && !board.ValidateSolved() && _cycles < _cycleLimit)
+                List<(int, int, int)> bestSquares = new List<(int, int, int)>();
+
+                for (int i = 0; i < board.AllSquares.Length; i++)
                 {
-                    List<(int, int, int)> bestSquares = new List<(int, int, int)>();
-
-                    for (int i = 0; i < board.AllSquares.Length; i++)
+                    if (board.AllSquares[i].Number == 0)
                     {
-                        if (board.AllSquares[i].Number == 0 && board.AllSquares[i].Notes.Count == noteDepth)
+                        int[] notes = board.AllSquares[i].Notes.GetActiveNotes();
+                        for (int n = 0; n < board.AllSquares[i].Notes.Count; n++)
                         {
-                            for (int n = 0; n < noteDepth; n++)
-                            {
-                                board.AllSquares[i].Number = board.AllSquares[i].Notes.GetActiveNotes()[n];
+                            board.AllSquares[i].Number = notes[n];
 
-                                int score = GetSquareScore(board, board.AllSquares[i], noteDepth);
+                            int score = GetSquareScore(board.AllSquares[i]) + notes.Length;
 
-                                bestSquares.Add((i, score, board.AllSquares[i].Number));
+                            bestSquares.Add((i, score, notes[n]));
 
-                                board.AllSquares[i].Number = 0;
-                            }
+                            board.AllSquares[i].Number = 0;
                         }
                     }
-
-                    bestSquares.Sort((x, y) => x.Item2 > y.Item2 ? -1 : 1);
-
-                    foreach (var indexScore in bestSquares)
-                    {
-                        board.AllSquares[indexScore.Item1].Number = indexScore.Item3;
-
-                        Verbose("(" + noteDepth + ") Setting square " + board.AllSquares[indexScore.Item1].Name + " to " + board.AllSquares[indexScore.Item1].Number, recursionDepth);
-
-                        yield return Step();
-
-                        yield return SolveRecursiveSlow(board, recursionDepth + 1);
-
-                        if (board.ValidateSolved() || _cycles >= _cycleLimit)
-                            _abort = true;
-
-                        if (_abort)
-                            yield break;
-
-                        board.SetState(state);
-
-                        GenerateNotes(board);
-                    }
-
-                    noteDepth++;
-                    yield return null;
                 }
 
-                yield break;
-            }
-            else if (goodSquareCount == -1)
-            {
-                //Verbose("Dead end", recursionDepth);
+                bestSquares.Sort((x, y) => x.Item2 < y.Item2 ? -1 : 1);
+
+                foreach (var indexScore in bestSquares)
+                {
+                    board.AllSquares[indexScore.Item1].Number = indexScore.Item3;
+
+                    Verbose("Setting square " + board.AllSquares[indexScore.Item1].Name + " to " + board.AllSquares[indexScore.Item1].Number, recursionDepth);
+
+                    yield return SolveRecursiveSlow(board, recursionDepth + 1);
+
+                    if (board.ValidateSolved() || _cycles >= _cycleLimit)
+                        _abort = true;
+
+                    if (_abort)
+                        yield break;
+
+                    board.SetState(state);
+                }
+
                 yield break;
             }
 
@@ -261,24 +235,13 @@ public class Solver : MonoBehaviour
             {
                 if (square.Number == 0)
                 {
-                    for (int n = 1; n < board.BoardSize + 1; n++)
+                    square.SetNotes();
+
+                    if (square.Notes.Count == 0)
                     {
-                        bool groupsContainNum = false;
-
-                        for (int k = 0; k < square.GroupCount; k++)
-                            groupsContainNum = groupsContainNum || square.GetGroup(k).Contains(n);
-
-                        square.Notes[n] = !groupsContainNum;
+                        return;
                     }
-
-                    int noteCount = square.Notes.Count;
-
-                    if (noteCount == 0)
-                    {
-                        goodSquareCount = -1;
-                        break;
-                    }
-                    else if (noteCount == 1)
+                    else if (square.Notes.Count == 1)
                     {
                         int[] notes = square.Notes.GetActiveNotes();
                         square.Number = square.Notes.GetActiveNotes()[0];
@@ -292,81 +255,54 @@ public class Solver : MonoBehaviour
                 Verbose("No good squares", recursionDepth);
 
                 IBoard.State state = board.GetState();
-                int noteDepth = 2;
 
-                while (noteDepth <= board.BoardSize && !board.ValidateSolved() && _cycles < _cycleLimit)
+                List<(int, int, int)> bestSquares = new List<(int, int, int)>();
+
+                for (int i = 0; i < board.AllSquares.Length; i++)
                 {
-                    List<(int, int, int)> bestSquares = new List<(int, int, int)>();
-
-                    for (int i = 0; i < board.AllSquares.Length; i++)
+                    if (board.AllSquares[i].Number == 0)
                     {
-                        if (board.AllSquares[i].Number == 0 && board.AllSquares[i].Notes.Count == noteDepth)
+                        int[] notes = board.AllSquares[i].Notes.GetActiveNotes();
+                        for (int n = 0; n < board.AllSquares[i].Notes.Count; n++)
                         {
-                            for (int n = 0; n < noteDepth; n++)
-                            {
-                                board.AllSquares[i].Number = board.AllSquares[i].Notes.GetActiveNotes()[n];
+                            board.AllSquares[i].Number = notes[n];
 
-                                int score = GetSquareScore(board, board.AllSquares[i], noteDepth);
+                            int score = GetSquareScore(board.AllSquares[i]) + notes.Length;
 
-                                bestSquares.Add((i, score, board.AllSquares[i].Number));
+                            bestSquares.Add((i, score, notes[n]));
 
-                                board.AllSquares[i].Number = 0;
-                            }
+                            board.AllSquares[i].Number = 0;
                         }
                     }
+                }
 
-                    bestSquares.Sort((x, y) => x.Item2 > y.Item2 ? -1 : 1);
+                bestSquares.Sort((x, y) => x.Item2 < y.Item2 ? -1 : 1);
 
-                    foreach (var indexScore in bestSquares)
-                    {
-                        board.AllSquares[indexScore.Item1].Number = indexScore.Item3;
+                foreach (var indexScore in bestSquares)
+                {
+                    board.AllSquares[indexScore.Item1].Number = indexScore.Item3;
 
-                        Verbose("(" + noteDepth + ") Setting square " + board.AllSquares[indexScore.Item1].Name + " to " + board.AllSquares[indexScore.Item1].Number, recursionDepth);
+                    Verbose("Setting square " + board.AllSquares[indexScore.Item1].Name + " to " + board.AllSquares[indexScore.Item1].Number, recursionDepth);
 
-                        SolveRecursive(board, recursionDepth + 1);
+                    SolveRecursive(board, recursionDepth + 1);
 
-                        if (board.ValidateSolved() || _cycles >= _cycleLimit)
-                            _abort = true;
+                    if (board.ValidateSolved() || _cycles >= _cycleLimit)
+                        _abort = true;
 
-                        if (_abort)
-                            return;
+                    if (_abort)
+                        return;
 
-                        board.SetState(state);
-
-                        GenerateNotes(board);
-                    }
-
-                    noteDepth++;
+                    board.SetState(state);
                 }
 
                 return;
             }
-            else if (goodSquareCount == -1)
-                return;
 
             _cycles++;
         }
         while (!board.ValidateSolved() && _cycles < _cycleLimit);
     }
-    private void GenerateNotes(IBoard board)
-    {
-        foreach (ISquare square in board.AllSquares)
-        {
-            if (square.Number == 0)
-            {
-                for (int n = 1; n < board.BoardSize + 1; n++)
-                {
-                    bool groupsContainNum = false;
-
-                    for (int k = 0; k < square.GroupCount; k++)
-                        groupsContainNum = groupsContainNum || square.GetGroup(k).Contains(n);
-
-                    square.Notes[n] = !groupsContainNum;
-                }
-            }
-        }
-    }
-    private int GetSquareScore(IBoard board, ISquare changed, int threshhold)
+    private int GetSquareScore(ISquare changed)
     {
         int score = 0;
 
@@ -376,25 +312,7 @@ public class Solver : MonoBehaviour
             {
                 if (square.Number == 0)
                 {
-                    for (int n = 1; n < board.BoardSize + 1; n++)
-                    {
-                        bool groupsContainNum = false;
-
-                        for (int k = 0; k < square.GroupCount; k++)
-                            groupsContainNum = groupsContainNum || square.GetGroup(k).Contains(n);
-
-                        if (groupsContainNum)
-                        {
-                            square.Notes[n] = false;
-                        }
-                        else
-                        {
-                            square.Notes[n] = true;
-                        }
-
-                        if (square.Notes.Count <= threshhold)
-                            score++;
-                    }
+                    score += square.ValidNumbersCount();
                 }
             }
         }
