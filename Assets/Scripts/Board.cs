@@ -19,7 +19,7 @@ public class Board : MonoBehaviour, IBoard
     [SerializeField] private float _squareAnchorPadding = 0.005f;
 
     [Header("References")]
-    [SerializeField] private BoardSelection _boardSelection;
+    [SerializeField] private BoardSelectionMenu _boardSelection;
 
     [Space]
     [SerializeField] private Square _squarePrefab;
@@ -58,7 +58,7 @@ public class Board : MonoBehaviour, IBoard
     public event System.Action<bool> OnNoteModeToggle;
 
     // Lifecycle
-    public void Init(IBoard.State state, BoardSelection boardSelection)
+    public void Init(IBoard.State state, BoardSelectionMenu boardSelection)
     {
         _boardSelection = boardSelection;
         _boardSize = state.Numbers.GetLength(0);

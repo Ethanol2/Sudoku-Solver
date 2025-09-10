@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class Solver : MonoBehaviour
 {
-    [SerializeField] private BoardSelection _boardSelector;
+    [SerializeField] private BoardSelectionMenu _boardSelector;
 
     [Space]
     [SerializeField] private Board _board;
