@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -16,11 +17,6 @@ public class MinifiedBoard : MonoBehaviour, IBoard
     [SerializeField] private Transform _minifiedSquare;
     [SerializeField] private Transform _quadrantsParent;
 
-    [Header("Debug")]
-    [SerializeField] private bool _initialized = false;
-    [SerializeField] private bool _validated = false;
-    [SerializeField] private bool _solved = false;
-
     public int BoardSize => _boardSize;
 
     public Vector2Int SquareCount => _squareCount;
@@ -32,6 +28,7 @@ public class MinifiedBoard : MonoBehaviour, IBoard
     public SquareGroup[] Columns => null;
 
     public ISquare[] AllSquares => null;
+    public List<ISquare> EmptySquares => null;
 
     public void Init(IBoard.State state)
     {
@@ -80,10 +77,6 @@ public class MinifiedBoard : MonoBehaviour, IBoard
                 Board.SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);
             }
         }
-
-        _solved = state.Solved;
-        _validated = true;
-        _initialized = true;
     }
     public IBoard.State GetState()
     {
