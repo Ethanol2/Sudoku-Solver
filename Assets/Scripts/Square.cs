@@ -29,6 +29,8 @@ public class Square : MonoBehaviour, ISquare
         get => _number;
         set
         {
+            int oldNum = _number;
+
             _number = Mathf.Clamp(value, 0, _board.BoardSize);
 
             _numberDisplay.gameObject.SetActive(_number != 0);
@@ -36,7 +38,7 @@ public class Square : MonoBehaviour, ISquare
 
             _notesParent.gameObject.SetActive(_number == 0);
 
-            OnChanged?.Invoke(this);
+            OnChanged?.Invoke(oldNum, _number);
         }
     }
     public ISquare.Notepad Notes => _notes;
@@ -45,7 +47,7 @@ public class Square : MonoBehaviour, ISquare
     public int GroupCount => _groups.Length;
 
     // Events
-    public event System.Action<ISquare> OnChanged;
+    public event System.Action<int, int> OnChanged;
 
     void OnValidate()
     {
@@ -71,6 +73,7 @@ public class Square : MonoBehaviour, ISquare
     {
         _board = board;
         Number = number;
+
         _notes = new Notepad(_notePrefab, _notesParent.transform, _board);
         _groups = new SquareGroup[] { null, null, null };
 
@@ -93,6 +96,48 @@ public class Square : MonoBehaviour, ISquare
     {
         Colour = _groups[0].IsValid && _groups[1].IsValid && _groups[2].IsValid ? _board.NormalColour : _board.WarningColour;
     }
+    [ContextMenu("Set Notes")]
+    public void SetNotes()
+    {
+        if (_notes.Count > 0)
+            _notes.Clear();
+
+        if (_number > 0)
+            return;
+
+        for (int i = 0; i < _board.BoardSize; i++)
+        {
+            bool valid = true;
+            foreach (SquareGroup group in _groups)
+            {
+                if (group.ContainsByIndex(i))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            _notes[i + 1] = valid;
+        }
+    }
+    public int ValidNumbersCount(int exclusion = -1)
+    {
+        int count = 0;
+        for (int i = 0; i < _board.BoardSize; i++)
+        {
+            foreach (SquareGroup group in _groups)
+            {
+                if (i + 1 == exclusion)
+                    continue;
+
+                if (group.ContainsByIndex(i))
+                {
+                    break;
+                }
+            }
+            count++;
+        }
+        return count;
+    }
 
     private void OnClicked()
     {
@@ -102,11 +147,11 @@ public class Square : MonoBehaviour, ISquare
         }
         else
         {
-            _number++;
-            if (_number > _board.BoardSize)
-                _number = 0;
+            int newNum = _number + 1;
+            if (newNum > _board.BoardSize)
+                newNum = 0;
 
-            Number = _number;
+            Number = newNum;
         }
     }
     private void OnNoteModeToggle(bool state)
@@ -149,6 +194,13 @@ public class Square : MonoBehaviour, ISquare
             base.SetNote(i, value);
             Texts[i - 1].gameObject.SetActive(value);
         }
+        public override void Clear()
+        {
+            base.Clear();
+
+            foreach (TMP_Text text in Texts)
+                text.gameObject.SetActive(false);
+        }
     }
 }
 
@@ -170,8 +222,10 @@ public class DataOnlySquare : ISquare
         get => _number;
         set
         {
+            int oldNum = _number;
             _number = Mathf.Clamp(value, 0, _board.BoardSize);
-            OnChanged?.Invoke(this);
+
+            OnChanged?.Invoke(oldNum, _number);
         }
     }
     public ISquare.Notepad Notes => _notes;
@@ -179,7 +233,7 @@ public class DataOnlySquare : ISquare
     public int GroupCount => _groups.Length;
 
     // Events
-    public event System.Action<ISquare> OnChanged;
+    public event System.Action<int, int> OnChanged;
 
     // Methods
     public DataOnlySquare(IBoard board, string name, int number, bool locked)
@@ -187,6 +241,7 @@ public class DataOnlySquare : ISquare
         _board = board;
         _name = name;
         Number = number;
+
         Locked = locked;
 
         _notes = new ISquare.Notepad(board.BoardSize);
@@ -194,6 +249,48 @@ public class DataOnlySquare : ISquare
     }
     public void AddGroup(SquareGroup group, int index) => _groups[index] = group;
     public SquareGroup GetGroup(int index) => _groups[index];
+    public void SetNotes()
+    {
+        if (_notes.Count > 0)
+            _notes.Clear();
+
+        if (_number > 0)
+            return;
+
+        for (int i = 0; i < _board.BoardSize; i++)
+        {
+            bool valid = true;
+            foreach (SquareGroup group in _groups)
+            {
+                if (group.ContainsByIndex(i))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            _notes[i + 1] = valid;
+        }
+    }
+    public int ValidNumbersCount(int exclusion = -1)
+    {
+        int count = 0;
+        for (int i = 0; i < _board.BoardSize; i++)
+        {
+            if (i + 1 == exclusion)
+                continue;
+
+            foreach (SquareGroup group in _groups)
+            {
+                if (group.ContainsByIndex(i))
+                {
+                    count--;
+                    break;
+                }
+            }
+            count++;
+        }
+        return count;
+    }
 }
 
 public interface ISquare
@@ -206,33 +303,36 @@ public interface ISquare
     public int GroupCount { get; }
 
     // Events
-    public event System.Action<ISquare> OnChanged;
+    public event System.Action<int, int> OnChanged;
 
     // Methods
     public void AddGroup(SquareGroup group, int index);
     public SquareGroup GetGroup(int index);
+    public void SetNotes();
+    public int ValidNumbersCount(int exclusion);
 
     [System.Serializable]
     public class Notepad
     {
         public bool[] Numbers;
+        private int _count = 0;
 
-        public int Count
-        {
-            get
-            {
-                int count = 0;
-                foreach (bool n in Numbers)
-                    if (n)
-                        count++;
-
-                return count;
-            }
-        }
-
+        public int Count => _count;
         public Notepad(int size)
         {
             Numbers = new bool[size];
+        }
+        public int GetSmallestNote()
+        {
+            for (int i = 0; i < Numbers.Length; i++)
+            {
+                if (Numbers[i])
+                {
+                    return i;
+                }
+            }
+
+            return 0;
         }
         public List<int> GetActiveNotesList()
         {
@@ -248,6 +348,11 @@ public interface ISquare
             return active;
         }
         public int[] GetActiveNotes() => GetActiveNotesList().ToArray();
+        public virtual void Clear()
+        {
+            Numbers = new bool[Numbers.Length];
+            _count = 0;
+        }
 
         public bool this[int i] { get => GetNote(i); set => SetNote(i, value); }
         protected virtual bool GetNote(int i)
@@ -262,6 +367,12 @@ public interface ISquare
             i--;
             if (i >= Numbers.Length || i < 0)
                 throw new System.Exception($"Attempted to note number outside the scope of the game. Range: 1 -> {Numbers.Length} Number: {i + 1}");
+
+            if (Numbers[i] && !value)
+                _count--;
+            else if (!Numbers[i] && value)
+                _count++;
+
             Numbers[i] = value;
         }
     }

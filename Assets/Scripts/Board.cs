@@ -19,9 +19,6 @@ public class Board : MonoBehaviour, IBoard
     [SerializeField] private float _squareAnchorPadding = 0.005f;
 
     [Header("References")]
-    [SerializeField] private BoardSelectionMenu _boardSelection;
-
-    [Space]
     [SerializeField] private Square _squarePrefab;
     [SerializeField] private Transform _quadrantsParent;
 
@@ -58,9 +55,8 @@ public class Board : MonoBehaviour, IBoard
     public event System.Action<bool> OnNoteModeToggle;
 
     // Lifecycle
-    public void Init(IBoard.State state, BoardSelectionMenu boardSelection)
+    public void Init(IBoard.State state)
     {
-        _boardSelection = boardSelection;
         _boardSize = state.Numbers.GetLength(0);
 
         float sqrtSize = Mathf.Sqrt(_boardSize);
@@ -241,7 +237,7 @@ public class Board : MonoBehaviour, IBoard
 
         _solved = state.Solved;
     }
-    private void OnSquareChanged(ISquare square) => _validated = false;
+    private void OnSquareChanged(int a, int b) => _validated = false;
 
     public static implicit operator DataOnlyBoard(Board board) => new DataOnlyBoard(board.GetState());
 }
@@ -420,7 +416,7 @@ public class DataOnlyBoard : IBoard
 
         _solved = state.Solved;
     }
-    private void OnSquareChanged(ISquare square) => _validated = false;
+    private void OnSquareChanged(int a, int b) => _validated = false;
 
     public static implicit operator IBoard.State(DataOnlyBoard board) => board.GetState();
 }

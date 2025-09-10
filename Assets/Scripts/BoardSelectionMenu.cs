@@ -60,7 +60,7 @@ public class BoardSelectionMenu : MonoBehaviour
     {
         _board = GameObject.Instantiate(_boardPrefab);
 
-        _board.Init(boardNumbers, this);
+        _board.Init(boardNumbers);
         _boardsSelectorView.gameObject.SetActive(false);
 
         _returnButton.gameObject.SetActive(true);
