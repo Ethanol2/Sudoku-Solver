@@ -71,7 +71,11 @@ public class MinifiedBoard : MonoBehaviour, IBoard
                 newSquare.name = $"({x}, {y})";
 
                 TMP_Text squareText = newSquare.GetComponentInChildren<TMP_Text>();
-                squareText.text = state.Numbers[_boardSize - 1 - y, x].ToString();
+                int number = state.Numbers[_boardSize - 1 - y, x];
+                if (number > 0)
+                    squareText.text = number.ToString();
+                else
+                    squareText.gameObject.SetActive(false);
 
                 RectTransform squareRect = newSquare.transform as RectTransform;
                 Board.SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);

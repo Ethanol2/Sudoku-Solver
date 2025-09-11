@@ -155,8 +155,7 @@ public class Solver : MonoBehaviour
                     }
                     else if (square.Notes.Count == 1)
                     {
-                        int[] notes = square.Notes.GetActiveNotes();
-                        square.Number = square.Notes.GetActiveNotes()[0];
+                        square.Number = square.Notes.GetSmallestNote();
                         goodSquareCount++;
                     }
                 }
@@ -231,11 +230,20 @@ public class Solver : MonoBehaviour
         do
         {
             int goodSquareCount = 0;
+
+            foreach (SquareGroup row in board.Rows)
+            {
+                for (int i = 0; i < board.BoardSize; i += board.SquareCount.x)
+                {
+                    row[i].SetGroupNotes();
+                }
+            }
+
             foreach (ISquare square in board.AllSquares)
             {
                 if (square.Number == 0)
                 {
-                    square.SetNotes();
+                    square.CheckForUniqueNotes(true);
 
                     if (square.Notes.Count == 0)
                     {
@@ -243,8 +251,7 @@ public class Solver : MonoBehaviour
                     }
                     else if (square.Notes.Count == 1)
                     {
-                        int[] notes = square.Notes.GetActiveNotes();
-                        square.Number = square.Notes.GetActiveNotes()[0];
+                        square.Number = square.Notes.GetSmallestNote();
                         goodSquareCount++;
                     }
                 }
@@ -312,7 +319,7 @@ public class Solver : MonoBehaviour
             {
                 if (square.Number == 0)
                 {
-                    score += square.ValidNumbersCount();
+                    score += square.GetValidNumbersCount();
                 }
             }
         }
