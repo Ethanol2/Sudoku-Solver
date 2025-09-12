@@ -100,24 +100,12 @@ public class Square : MonoBehaviour, ISquare
     [ContextMenu("Set Notes")]
     public void SetNotes()
     {
-        if (_notes.Count > 0)
-            _notes.Clear();
-
         if (_number > 0)
             return;
 
         for (int i = 0; i < _board.BoardSize; i++)
         {
-            bool valid = true;
-            foreach (SquareGroup group in _groups)
-            {
-                if (group.ContainsByIndex(i))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            _notes[i + 1] = valid;
+            _notes[i + 1] = !GetGroupsContain(i);
         }
     }
     public int GetValidNumbersCount()
@@ -159,6 +147,18 @@ public class Square : MonoBehaviour, ISquare
         else
             _button.interactable = true;
     }
+    private bool GetGroupsContain(int numIndex)
+    {
+        foreach (SquareGroup group in _groups)
+        {
+            if (group.ContainsByIndex(numIndex))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     [ContextMenu("Check for Unique")]
     public bool CheckForUniqueNotes() => CheckForUniqueNotes(true);
     public bool CheckForUniqueNotes(bool apply)
@@ -288,24 +288,12 @@ public class DataOnlySquare : ISquare
     public SquareGroup GetGroup(int index) => _groups[index];
     public void SetNotes()
     {
-        if (_notes.Count > 0)
-            _notes.Clear();
-
         if (_number > 0)
             return;
 
         for (int i = 0; i < _board.BoardSize; i++)
         {
-            bool valid = true;
-            foreach (SquareGroup group in _groups)
-            {
-                if (group.ContainsByIndex(i))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            _notes[i + 1] = valid;
+            _notes[i + 1] = !GetGroupsContain(i);
         }
     }
     public int GetValidNumbersCount()
@@ -347,6 +335,17 @@ public class DataOnlySquare : ISquare
             foreach (ISquare square in group.Squares)
                 square.SetNotes();
         }
+    }
+    private bool GetGroupsContain(int numIndex)
+    {
+        foreach (SquareGroup group in _groups)
+        {
+            if (group.ContainsByIndex(numIndex))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

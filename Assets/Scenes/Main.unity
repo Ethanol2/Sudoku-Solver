@@ -679,7 +679,7 @@ MonoBehaviour:
   _cycleLimit: 100000
   _cyclePauseTime: 0.1
   _verboseLogging: 0
-  _stepThrough: 1
+  _stepThrough: 0
   _solving: 0
   _abort: 0
   _cycles: 0

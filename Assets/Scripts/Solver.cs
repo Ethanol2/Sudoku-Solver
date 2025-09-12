@@ -143,11 +143,15 @@ public class Solver : MonoBehaviour
         do
         {
             int goodSquareCount = 0;
+
+            foreach (ISquare square in board.AllSquares)
+                square.SetNotes();
+
             foreach (ISquare square in board.AllSquares)
             {
                 if (square.Number == 0)
                 {
-                    square.SetNotes();
+                    square.CheckForUniqueNotes(true);
 
                     if (square.Notes.Count == 0)
                     {
@@ -161,10 +165,7 @@ public class Solver : MonoBehaviour
                 }
             }
 
-            if (_stepThrough)
-                yield return Step();
-            else
-                yield return new WaitForSeconds(_cyclePauseTime);
+            yield return Step();
 
             if (goodSquareCount == 0)
             {
@@ -231,13 +232,8 @@ public class Solver : MonoBehaviour
         {
             int goodSquareCount = 0;
 
-            foreach (SquareGroup row in board.Rows)
-            {
-                for (int i = 0; i < board.BoardSize; i += board.SquareCount.x)
-                {
-                    row[i].SetGroupNotes();
-                }
-            }
+            foreach (ISquare square in board.AllSquares)
+                square.SetNotes();
 
             foreach (ISquare square in board.AllSquares)
             {
@@ -340,6 +336,10 @@ public class Solver : MonoBehaviour
         {
             this.Log("Waiting for step...");
             yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.M));
+        }
+        else
+        {
+            yield return new WaitForSeconds(_cyclePauseTime);
         }
     }
 }
