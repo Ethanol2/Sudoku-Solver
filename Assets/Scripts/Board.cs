@@ -72,6 +72,16 @@ public class Board : MonoBehaviour, IBoard
             if (Input.GetKeyDown(n.ToString()))
                 _noteNumber = n;
         }
+
+#if UNITY_EDITOR
+        if (Input.GetKeyDown("u"))
+        {
+            foreach (ISquare square in AllSquares)
+            {
+                square.Locked = false;
+            }
+        }
+#endif
     }
     public void Init(IBoard.State state)
     {
@@ -184,24 +194,26 @@ public class Board : MonoBehaviour, IBoard
 
         bool solved = true;
 
-        solved = solved && ValidateGroups(Quadrants);
-        solved = solved && ValidateGroups(Rows);
-        solved = solved && ValidateGroups(Columns);
+        solved = solved && IBoard.ValidateGroups(Quadrants);
+        solved = solved && IBoard.ValidateGroups(Rows);
+        solved = solved && IBoard.ValidateGroups(Columns);
 
         _solved = solved;
         _validated = true;
 
         return solved;
     }
-    protected bool ValidateGroups(IEnumerable groups)
+    public bool HasViolation()
     {
-        bool valid = true;
-        foreach (SquareGroup group in groups)
-        {
-            valid = valid && group.AllSquaresFilled() && group.IsValid;
-        }
-        return valid;
+        bool isValid = true;
+
+        isValid = isValid && IBoard.ValidateIncompleteGroups(Quadrants);
+        isValid = isValid && IBoard.ValidateIncompleteGroups(Rows);
+        isValid = isValid && IBoard.ValidateIncompleteGroups(Columns);
+
+        return !isValid;
     }
+
     public IBoard.State GetState()
     {
         IBoard.State export = new IBoard.State();
@@ -369,23 +381,24 @@ public class DataOnlyBoard : IBoard
 
         bool solved = true;
 
-        solved = solved && ValidateGroups(Quadrants);
-        solved = solved && ValidateGroups(Rows);
-        solved = solved && ValidateGroups(Columns);
+        solved = solved && IBoard.ValidateGroups(Quadrants);
+        solved = solved && IBoard.ValidateGroups(Rows);
+        solved = solved && IBoard.ValidateGroups(Columns);
 
         _solved = solved;
         _validated = true;
 
         return solved;
     }
-    protected bool ValidateGroups(IEnumerable groups)
+    public bool HasViolation()
     {
-        bool valid = true;
-        foreach (SquareGroup group in groups)
-        {
-            valid = valid && group.AllSquaresFilled() && group.IsValid;
-        }
-        return valid;
+        bool isValid = true;
+
+        isValid = isValid && IBoard.ValidateIncompleteGroups(Quadrants);
+        isValid = isValid && IBoard.ValidateIncompleteGroups(Rows);
+        isValid = isValid && IBoard.ValidateIncompleteGroups(Columns);
+
+        return !isValid;
     }
     public IBoard.State GetState()
     {
@@ -451,9 +464,28 @@ public interface IBoard
 
     // Utility
     public bool ValidateSolved();
+    public bool HasViolation();
     public State GetState();
     public void SetState(State state);
 
+    protected static bool ValidateGroups(IEnumerable groups)
+    {
+        bool valid = true;
+        foreach (SquareGroup group in groups)
+        {
+            valid = valid && group.AllSquaresFilled() && group.IsValid;
+        }
+        return valid;
+    }
+    protected static bool ValidateIncompleteGroups(IEnumerable groups)
+    {
+        bool valid = true;
+        foreach (SquareGroup group in groups)
+        {
+            valid = valid && group.IsValid;
+        }
+        return valid;
+    }
     // Support
     [System.Serializable]
     public class State

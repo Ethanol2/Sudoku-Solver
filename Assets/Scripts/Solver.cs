@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using EditorTools;
 using UnityEngine;
@@ -12,6 +13,7 @@ public class Solver : MonoBehaviour
     [SerializeField] private Board _board;
     [SerializeField] private int _cycleLimit = 100;
     [SerializeField] private float _cyclePauseTime = 0.1f;
+    [SerializeField] private float _generationTimeoutTime = 1f;
 
     [Header("Debug")]
     [SerializeField] private bool _verboseLogging = false;
@@ -77,9 +79,12 @@ public class Solver : MonoBehaviour
         _abort = false;
 
         if (slow)
-            yield return SolveRecursiveSlow(board);
+            yield return SolveRecursiveSlow(board, _cyclePauseTime);
         else
         {
+#if UNITY_WEBGL
+            yield return SolveRecursiveSlow(board, 0f);
+#else
             DataOnlyBoard dBoard = board;
             Task task = Task.Run(() => SolveRecursive(dBoard));
 
@@ -87,8 +92,8 @@ public class Solver : MonoBehaviour
 
             if (task.Exception != null)
                 throw task.Exception;
-
             board.SetState(dBoard);
+#endif
         }
 
         this.Log("Board Solved: " + board.ValidateSolved());
@@ -103,14 +108,31 @@ public class Solver : MonoBehaviour
 
         board.SetState(IBoard.State.GenerateEmpty(board.BoardSize));
         board.AllSquares[Random.Range(0, board.AllSquares.Length)].Number = Random.Range(1, board.BoardSize + 1);
-        //board.AllSquares[10].Number = 5;
 
         if (slow)
         {
-            yield return SolveRecursiveSlow(board);
+            yield return SolveRecursiveSlow(board, _cyclePauseTime);
         }
         else
         {
+#if UNITY_WEBGL
+            Coroutine generation = StartCoroutine(SolveRecursiveSlow(board, 0f));
+
+            float t = 0f;
+            while (!board.ValidateSolved())
+            {
+                yield return null;
+                t += Time.deltaTime;
+                if (t > _generationTimeoutTime)
+                {
+                    _abort = true;
+
+                    this.Log("Generation Timeout");
+                    StartCoroutine(GenerateBoard(board, slow));
+                    yield break;
+                }
+            }
+#else
             DataOnlyBoard dBoard = board;
 
             Task task = Task.Run(() =>
@@ -118,12 +140,26 @@ public class Solver : MonoBehaviour
                 SolveRecursive(dBoard);
             });
 
-            yield return new WaitUntil(() => task.IsCompleted);
+            float t = 0f;
+            while (!task.IsCompleted)
+            {
+                yield return null;
+                t += Time.deltaTime;
+                if (t > _generationTimeoutTime)
+                {
+                    _abort = true;
+
+                    this.Log("Generation Timeout");
+                    StartCoroutine(GenerateBoard(board, slow));
+                    yield break;
+                }
+            }
 
             if (task.Exception != null)
                 throw task.Exception;
 
             board.SetState(dBoard);
+#endif
         }
 
         this.Log("Generation Successful: " + board.ValidateSolved());
@@ -131,7 +167,7 @@ public class Solver : MonoBehaviour
         _solving = false;
     }
 
-    private IEnumerator SolveRecursiveSlow(IBoard board, int recursionDepth = 0)
+    private IEnumerator SolveRecursiveSlow(IBoard board, float waitTime, int recursionDepth = 0)
     {
         if (recursionDepth >= 1020)
         {
@@ -165,7 +201,7 @@ public class Solver : MonoBehaviour
                 }
             }
 
-            yield return Step();
+            yield return Step(waitTime);
 
             if (goodSquareCount == 0)
             {
@@ -323,6 +359,7 @@ public class Solver : MonoBehaviour
         return score;
     }
 
+
     private void Verbose(object message, int depth)
     {
         if (_verboseLogging)
@@ -330,7 +367,7 @@ public class Solver : MonoBehaviour
             this.Log((depth == -1 ? "" : $"({depth}) ") + message);
         }
     }
-    private IEnumerator Step()
+    private IEnumerator Step(float waitTime)
     {
         if (_stepThrough)
         {
@@ -339,7 +376,7 @@ public class Solver : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSeconds(_cyclePauseTime);
+            yield return new WaitForSeconds(waitTime);
         }
     }
 }

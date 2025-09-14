@@ -96,4 +96,6 @@ public class MinifiedBoard : MonoBehaviour, IBoard
     {
         throw new System.NotImplementedException();
     }
+
+    public bool HasViolation() => throw new System.NotImplementedException();
 }
