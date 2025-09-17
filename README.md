@@ -109,3 +109,6 @@ Obviously I could just write a normal recursive method and let it go, but lockin
 ## Building the UI
 
 My next task is to wrap my functional but ugly programmer UI into something presentable.
+
+## Sources
+Massive thanks to grantm for having this [repo of boards](https://github.com/grantm/sudoku-exchange-puzzle-bank) available

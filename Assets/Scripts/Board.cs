@@ -493,6 +493,7 @@ public interface IBoard
         public string Difficulty;
         public int[,] Numbers;
         public bool Solved = false;
+        public Dictionary<string, string> Properties = new Dictionary<string, string>();
 
         public static State GenerateEmpty(int size)
         {

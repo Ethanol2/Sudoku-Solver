@@ -1,9 +1,60 @@
 using UnityEngine;
 using Newtonsoft.Json;
 using System.IO;
+using EditorTools;
+using System.Collections.Generic;
 
 public static class ImporterExporter
 {
+    public static IBoard.State[] ImportBoardsLines(TextAsset file, int maxLines, string difficulty, Dictionary<string, string> properties)
+    {
+        string[] lines = file.text.Split("\n", 1);
+        int count = 0;
+
+        List<IBoard.State> states = new List<IBoard.State>();
+
+        while (lines[0] != string.Empty && count < maxLines)
+        {
+            string[] split = lines[0].Split(' ');
+            int boardSize;
+            switch (split[0].Length)
+            {
+                case 16:
+                    boardSize = 4;
+                    break;
+                case 36:
+                    boardSize = 6;
+                    break;
+                case 81:
+                    boardSize = 9;
+                    break;
+                case 144:
+                    boardSize = 12;
+                    break;
+                case 625:
+                    boardSize = 25;
+                    break;
+                default:
+                    Debug.Log("Unknown board size");
+                    continue;
+            }
+
+            IBoard.State newState = new IBoard.State()
+            {
+                Difficulty = difficulty,
+                Properties = properties,
+                Numbers = new int[boardSize, boardSize]
+            };
+
+            int x = 0, y = 0;
+            for (int i = 0; i < lines[1].Length; i++)
+            {
+                if (x >= boardSize)
+                    y++;
+            }
+        }
+        return null;
+    }
     public static string ImportBoardsJson(string path)
     {
         if (!File.Exists(path))
