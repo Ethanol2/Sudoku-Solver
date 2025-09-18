@@ -256,6 +256,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 231102751}
+  - component: {fileID: 231102752}
   m_Layer: 5
   m_Name: Menu
   m_TagString: Untagged
@@ -283,6 +284,28 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &231102752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 231102750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e69fafeac3ca16299b5b1e85243becab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _importedBoards:
+  - {fileID: 11400000, guid: 7e3c23c656a96bd35bb18136ecaf5eab, type: 2}
+  _buttonPrefab: {fileID: 1929250215963868799, guid: be2c01afc56b8c1e8bc9510142844db0, type: 3}
+  _buttonsParent: {fileID: 1728123599}
+  _boardPrefab: {fileID: 6237410442632108391, guid: de7a0641d9247a13f8886610c0738b58, type: 3}
+  _solver: {fileID: 1395370477}
+  _gameView: {fileID: 1277296591}
+  _returnToMenuButton: {fileID: 1589513932}
+  _boardsSelectorView: {fileID: 231102751}
+  _boardButtons: []
 --- !u!1 &386192398
 GameObject:
   m_ObjectHideFlags: 0
@@ -626,13 +649,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 1728123598}
-  m_Horizontal: 1
+  m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 386192399}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 614290977}
@@ -716,7 +739,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 848c56e544cb7f1018a4a7327ebcafa5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _boardSelector: {fileID: 0}
   _board: {fileID: 0}
   _cycleLimit: 100000
   _cyclePauseTime: 0.1

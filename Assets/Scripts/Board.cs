@@ -490,7 +490,7 @@ public interface IBoard
     [System.Serializable]
     public class State
     {
-        public string Difficulty;
+        public float Difficulty;
         public int[,] Numbers;
         public bool Solved = false;
         public Dictionary<string, string> Properties = new Dictionary<string, string>();
@@ -508,7 +508,7 @@ public interface IBoard
                 }
             }
 
-            state.Difficulty = "Empty";
+            state.Difficulty = 0;
 
             return state;
         }

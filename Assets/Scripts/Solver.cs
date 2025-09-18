@@ -7,9 +7,6 @@ using UnityEngine;
 
 public class Solver : MonoBehaviour
 {
-    [SerializeField] private BoardSwipeMenu _boardSelector;
-
-    [Space]
     [SerializeField] private Board _board;
     [SerializeField] private int _cycleLimit = 100;
     [SerializeField] private float _cyclePauseTime = 0.1f;
@@ -23,17 +20,6 @@ public class Solver : MonoBehaviour
     [SerializeField] private bool _solving = false;
     [SerializeField] private bool _abort = false;
     [SerializeField] private int _cycles;
-
-    void OnEnable()
-    {
-        _boardSelector.OnBoardCreated += OnBoardCreated;
-        _boardSelector.OnBoardDestroyed += OnBoardDestroyed;
-    }
-    void OnDisable()
-    {
-        _boardSelector.OnBoardCreated -= OnBoardCreated;
-        _boardSelector.OnBoardDestroyed -= OnBoardDestroyed;
-    }
 
 #if UNITY_EDITOR
     // Update is called once per frame
@@ -62,11 +48,11 @@ public class Solver : MonoBehaviour
     }
 #endif
 
-    private void OnBoardCreated(Board board)
+    public void OnBoardCreated(Board board)
     {
         _board = board;
     }
-    private void OnBoardDestroyed()
+    public void OnBoardDestroyed()
     {
         StopAllCoroutines();
         _solving = false;

@@ -18,7 +18,7 @@ public class BoardSwipeMenu : MonoBehaviour
 
     [Header("Prefabs")]
     [SerializeField] private Board _boardPrefab;
-    [SerializeField] private BoardSwipeButton _buttonPrefab;
+    [SerializeField] private BoardButton _buttonPrefab;
 
     [Header("References")]
     [SerializeField] private Board _board;
@@ -37,11 +37,9 @@ public class BoardSwipeMenu : MonoBehaviour
         int i = 0;
         foreach (IBoard.State board in boards)
         {
-            BoardSwipeButton button = GameObject.Instantiate(_buttonPrefab, _selectButtonsParent.transform);
+            BoardButton button = GameObject.Instantiate(_buttonPrefab, _selectButtonsParent.transform);
 
             button.Board = board;
-            button.Solved = board.Solved;
-            button.Difficulty = board.Difficulty;
             button.OnClicked += OnBoardSelected;
 
             RectTransform rectTransform = button.transform as RectTransform;

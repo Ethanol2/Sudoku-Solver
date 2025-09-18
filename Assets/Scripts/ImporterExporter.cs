@@ -6,18 +6,19 @@ using System.Collections.Generic;
 
 public static class ImporterExporter
 {
-    public static IBoard.State[] ImportBoardsLines(TextAsset file, int maxLines, string difficulty, Dictionary<string, string> properties)
+    public static IBoard.State[] ImportBoardsLines(TextAsset file, int maxLines, Dictionary<string, string> properties) => ImportBoardsLines(file.text, maxLines, properties);
+    public static IBoard.State[] ImportBoardsLines(string file, int maxLines, Dictionary<string, string> properties)
     {
-        string[] lines = file.text.Split("\n", 1);
+        string[] lines = file.Split("\n", 2);
         int count = 0;
 
         List<IBoard.State> states = new List<IBoard.State>();
 
-        while (lines[0] != string.Empty && count < maxLines)
+        while (lines.Length == 2 && count <= maxLines)
         {
             string[] split = lines[0].Split(' ');
             int boardSize;
-            switch (split[0].Length)
+            switch (split[1].Length)
             {
                 case 16:
                     boardSize = 4;
@@ -39,22 +40,66 @@ public static class ImporterExporter
                     continue;
             }
 
+            float difficulty = -1;
+            if (float.TryParse(split[3], out float diff))
+                difficulty = diff;
+
+
             IBoard.State newState = new IBoard.State()
             {
-                Difficulty = difficulty,
                 Properties = properties,
-                Numbers = new int[boardSize, boardSize]
+                Numbers = new int[boardSize, boardSize],
+                Difficulty = difficulty
             };
 
             int x = 0, y = 0;
-            for (int i = 0; i < lines[1].Length; i++)
+            for (int i = 0; i < split[1].Length; i++)
             {
+                newState.Numbers[x, y] = int.Parse(split[1][i].ToString());
+
+                x++;
                 if (x >= boardSize)
+                {
+                    x = 0;
                     y++;
+                }
             }
+            states.Add(newState);
+            count++;
+            lines = lines[1].Split("\n", 2);
         }
-        return null;
+        return states.ToArray();
     }
+    public static List<ImportedBoards.Board> ImportBoardLinesToImportedBoards(string file)
+    {
+        string[] lines = file.Split("\n", 2);
+
+        List<ImportedBoards.Board> boards = new List<ImportedBoards.Board>();
+
+        while (lines.Length == 2)
+        {
+            ImportedBoards.Board newBoard = new ImportedBoards.Board();
+            string[] split = lines[0].Split(' ');
+
+            if (float.TryParse(split[3], out float diff))
+                newBoard.Difficulty = diff;
+
+            newBoard.Numbers = new int[split[1].Length];
+
+            int i = 0;
+            foreach (char c in split[1])
+            {
+                newBoard.Numbers[i] = int.Parse(c.ToString());
+                i++;
+            }
+
+            boards.Add(newBoard);
+            lines = lines[1].Split("\n", 2);
+        }
+
+        return boards;
+    }
+
     public static string ImportBoardsJson(string path)
     {
         if (!File.Exists(path))
