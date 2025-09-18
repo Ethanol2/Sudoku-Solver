@@ -73,7 +73,7 @@ GameObject:
   - component: {fileID: 2210058267089451411}
   - component: {fileID: 8988826750059117051}
   m_Layer: 5
-  m_Name: Board Swipe Button
+  m_Name: Board Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

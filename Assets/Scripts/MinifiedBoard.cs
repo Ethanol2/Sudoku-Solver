@@ -14,8 +14,13 @@ public class MinifiedBoard : MonoBehaviour, IBoard
     [SerializeField] private float _squareAnchorPadding = 0.005f;
 
     [Header("References")]
-    [SerializeField] private Transform _minifiedSquare;
+    [SerializeField] private MiniSquare _minifiedSquarePrefab;
     [SerializeField] private Transform _quadrantsParent;
+
+    [Space]
+    [SerializeField] private List<MiniSquare> _squares = new List<MiniSquare>();
+
+    private List<RectTransform> _quadrants = new List<RectTransform>();
 
     public int BoardSize => _boardSize;
 
@@ -30,9 +35,39 @@ public class MinifiedBoard : MonoBehaviour, IBoard
     public ISquare[] AllSquares => null;
     public List<ISquare> EmptySquares => null;
 
+    void OnValidate()
+    {
+        if (Application.isPlaying) return;
+
+        if (_minifiedSquarePrefab)
+        {
+            _boardSize = Mathf.Clamp(_boardSize, 0, 100);
+            int squareCount = _boardSize * _boardSize;
+            if (_squares.Count < squareCount)
+            {
+                while (_squares.Count < squareCount)
+                    _squares.Add(GameObject.Instantiate(_minifiedSquarePrefab, this.transform));
+            }
+            else if (_squares.Count > squareCount)
+            {
+                while (_squares.Count > squareCount)
+                {
+                    Destroy(_squares[_squares.Count - 1].gameObject);
+                    _squares.RemoveAt(_squares.Count - 1);
+                }
+
+            }
+        }
+    }
+
     public void Init(IBoard.State state)
     {
         _boardSize = state.Numbers.GetLength(0);
+
+        while (_squares.Count < _boardSize * _boardSize)
+            _squares.Add(GameObject.Instantiate(_minifiedSquarePrefab, this.transform));
+        foreach (MiniSquare square in _squares)
+            square.gameObject.SetActive(false);
 
         float sqrtSize = Mathf.Sqrt(_boardSize);
         _squareCount = new Vector2Int(
@@ -41,10 +76,19 @@ public class MinifiedBoard : MonoBehaviour, IBoard
         );
 
         _quadrantCount = new Vector2Int(_squareCount.y, _squareCount.x);
+        while (_quadrants.Count < _quadrantCount.x * _quadrantCount.y)
+        {
+            RectTransform newQuad = new GameObject($"Quadrant").AddComponent<RectTransform>();
+            newQuad.SetParent(_quadrantsParent);
+            _quadrants.Add(newQuad);
+        }
+        foreach (RectTransform rect in _quadrants)
+            rect.gameObject.SetActive(false);
 
         RectTransform[,] canvasQuadrants = new RectTransform[_quadrantCount.x, _quadrantCount.y];
 
         int qX = 0;
+        int s = 0, q = 0;
         for (int x = 0; x < _boardSize; x++)
         {
             if ((x - (_squareCount.x * qX)) == _squareCount.x)
@@ -58,27 +102,32 @@ public class MinifiedBoard : MonoBehaviour, IBoard
 
                 if (!canvasQuadrants[qX, qY])
                 {
-                    GameObject newQuadrantGO = new GameObject($"Quadrant ({qX}, {qY})");
-                    RectTransform newQuadrant = newQuadrantGO.AddComponent<RectTransform>();
-                    newQuadrant.SetParent(_quadrantsParent);
+                    RectTransform newQuadrant = _quadrants[q];
+                    newQuadrant.name = $"Quadrant ({qX}, {qY})";
+                    newQuadrant.gameObject.SetActive(true);
+                    q++;
+
                     newQuadrant.localScale = Vector3.one;
                     Board.SetAnchors(newQuadrant, qX, qY, _quadrantCount.x, _quadrantCount.y, _quadrantAnchorPadding);
 
                     canvasQuadrants[qX, qY] = newQuadrant;
                 }
 
-                Transform newSquare = GameObject.Instantiate(_minifiedSquare, canvasQuadrants[qX, qY]);
+                MiniSquare newSquare = _squares[s];
+                newSquare.transform.SetParent(canvasQuadrants[qX, qY]);
+                newSquare.gameObject.SetActive(true);
                 newSquare.name = $"({x}, {y})";
 
-                TMP_Text squareText = newSquare.GetComponentInChildren<TMP_Text>();
                 int number = state.Numbers[_boardSize - 1 - y, x];
                 if (number > 0)
-                    squareText.text = number.ToString();
+                    newSquare.Text.text = number.ToString();
                 else
-                    squareText.gameObject.SetActive(false);
+                    newSquare.Text.text = string.Empty;
 
                 RectTransform squareRect = newSquare.transform as RectTransform;
                 Board.SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);
+
+                s++;
             }
         }
     }

@@ -1,54 +1,52 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GridMenu : MonoBehaviour
 {
     [Header("Puzzles to Import")]
-    [SerializeField] private ImportedBoards[] _importedBoards;
+    [SerializeField] private PuzzleBook[] _puzzleBooks;
 
     [Header("Prefabs")]
-    [SerializeField] private BoardButton _buttonPrefab;
     [SerializeField] private GridLayoutGroup _buttonsParent;
     [SerializeField] private Board _boardPrefab;
 
     [Header("References")]
     [SerializeField] private Solver _solver;
     [SerializeField] private RectTransform _gameView;
-    [SerializeField] private Button _returnToMenuButton;
     [SerializeField] private RectTransform _boardsSelectorView;
 
+    [Header("UI References")]
+    [SerializeField] private BoardButton[] _pageButtons;
+    [SerializeField] private Button _returnToMenuButton;
+    [SerializeField] private TMP_Text _pageNumberText;
+
     [Header("Debug")]
-    [SerializeField] private List<BoardButton> _boardButtons;
+    [SerializeField] private List<IBoard.State> _allStates = new List<IBoard.State>();
+    [SerializeField] private int _currentPage = 0;
 
     private Board _board;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
-        foreach (ImportedBoards boards in _importedBoards)
-            ImportBoards(boards);
+        _allStates.Clear();
+
+        foreach (PuzzleBook book in _puzzleBooks)
+            _allStates.AddRange(book.GetBoardStates());
+
+        foreach (BoardButton button in _pageButtons)
+            button.OnClicked += OnBoardSelected;
 
         _gameView.gameObject.SetActive(false);
 
         _returnToMenuButton.onClick.AddListener(OnReturnToMenu);
 
-        SortByDifficulty(true);
-    }
-    private void ImportBoards(ImportedBoards boards)
-    {
-        var states = boards.GetBoardStates();
-
-        foreach (var state in states)
-        {
-            BoardButton newButton = GameObject.Instantiate(_buttonPrefab, _buttonsParent.transform);
-            newButton.Board = state;
-            newButton.OnClicked += OnBoardSelected;
-
-            _boardButtons.Add(newButton);
-        }
+        _pageNumberText.text = $"{_currentPage + 1} / {_allStates.Count / _pageButtons.Length}";
+        SortByDifficulty();
     }
 
     private void OnBoardSelected(IBoard.State state)
@@ -70,22 +68,45 @@ public class GridMenu : MonoBehaviour
 
         _solver.OnBoardDestroyed();
     }
-    private void ApplyListOrderToBoardButtons()
+    private void UpdatePageButtons()
     {
-        for (int i = 0; i < _boardButtons.Count; i++)
-            _boardButtons[i].transform.SetSiblingIndex(i);
+        for (int i = _currentPage * _pageButtons.Length, k = 0; k < _pageButtons.Length; i++, k++)
+        {
+            if (i >= _allStates.Count)
+                _pageButtons[k].gameObject.SetActive(false);
+            else
+            {
+                _pageButtons[k].gameObject.SetActive(true);
+                _pageButtons[k].Board = _allStates[i];
+            }
+        }
     }
 
-    public void SortByDifficulty(bool easyFirst)
+    public void SortByDifficulty(bool hardFirst = false)
     {
-        _boardButtons.Sort((x, y) =>
+        _allStates.Sort((x, y) =>
         {
-            return x.Difficulty <= y.Difficulty ? 1 : -1;
+            return x.Difficulty >= y.Difficulty ? 1 : -1;
         });
 
-        if (easyFirst)
-            _boardButtons.Reverse();
+        if (hardFirst)
+            _allStates.Reverse();
 
-        ApplyListOrderToBoardButtons();
+        UpdatePageButtons();
+    }
+    public void NextPage() => GoToPage(_currentPage + 1);
+    public void PreviousPage() => GoToPage(_currentPage - 1);
+    public void GoToPage(int page)
+    {
+        int lastPage = _allStates.Count / _pageButtons.Length;
+        _currentPage = (int)Mathf.Repeat(page, lastPage);
+
+        _pageNumberText.text = $"{_currentPage + 1} / {lastPage}";
+
+        UpdatePageButtons();
+    }
+    public void GenerateEmptyBoard(int boardSize)
+    {
+        OnBoardSelected(IBoard.State.GenerateEmpty(boardSize));
     }
 }

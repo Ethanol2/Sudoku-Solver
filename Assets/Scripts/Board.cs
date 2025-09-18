@@ -67,7 +67,7 @@ public class Board : MonoBehaviour, IBoard
             ValidateSolved();
         }
 
-        for (int n = 1; n < _boardSize + 1; n++)
+        for (int n = 1; n < Mathf.Clamp(_boardSize + 1, 1, 9); n++)
         {
             if (Input.GetKeyDown(n.ToString()))
                 _noteNumber = n;

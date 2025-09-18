@@ -2,13 +2,18 @@ using System.Collections.Generic;
 using EditorTools;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ImportedBoards", menuName = "Scriptable Objects/ImportedBoards")]
-public class ImportedBoards : ScriptableObject
+[CreateAssetMenu(fileName = "PuzzleBook", menuName = "Scriptable Objects/PuzzleBook")]
+public class PuzzleBook : ScriptableObject
 {
+    [SerializeField] private string _bookName = "New Book";
+    [SerializeField] private string _bookSource = string.Empty;
+
+    [Space]
     [SerializeField] private List<Board> _boards;
     [SerializeField] private TextAsset _importAsset;
 
-    public
+    public string Name => _bookName;
+    public string Source => _bookSource;
 
     void OnValidate()
     {
@@ -25,6 +30,10 @@ public class ImportedBoards : ScriptableObject
     public List<IBoard.State> GetBoardStates()
     {
         List<IBoard.State> states = new List<IBoard.State>();
+        Dictionary<string, string> props = new(){
+                    {"Name", _bookName},
+                    {"Source", _bookSource}
+                };
 
         foreach (var board in _boards)
         {
@@ -53,7 +62,7 @@ public class ImportedBoards : ScriptableObject
 
             IBoard.State newState = new IBoard.State()
             {
-                Properties = board.GetProperties(),
+                Properties = props,
                 Numbers = new int[boardSize, boardSize],
                 Difficulty = board.Difficulty
             };
@@ -81,18 +90,5 @@ public class ImportedBoards : ScriptableObject
     {
         public int[] Numbers;
         public float Difficulty;
-        public List<string> Keys = new List<string>();
-        public List<string> Values = new List<string>();
-
-        public Dictionary<string, string> GetProperties()
-        {
-            Dictionary<string, string> props = new Dictionary<string, string>();
-            for (int i = 0; i < Keys.Count; i++)
-            {
-                props.Add(Keys[i], Values[i]);
-            }
-
-            return props;
-        }
     }
 }
