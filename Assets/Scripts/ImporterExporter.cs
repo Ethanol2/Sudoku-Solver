@@ -70,7 +70,7 @@ public static class ImporterExporter
         }
         return states.ToArray();
     }
-    public static List<PuzzleBook.Board> ImportBoardLinesToImportedBoards(string file)
+    public static List<PuzzleBook.Board> ImportBoardLinesToPuzzleBook(string file)
     {
         string[] lines = file.Split("\n", 2);
 

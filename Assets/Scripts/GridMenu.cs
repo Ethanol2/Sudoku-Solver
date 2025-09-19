@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class GridMenu : MonoBehaviour
@@ -29,6 +29,9 @@ public class GridMenu : MonoBehaviour
     [SerializeField] private int _currentPage = 0;
 
     private Board _board;
+
+    public UnityEvent OnBoardLoaded;
+    public UnityEvent OnBoardGenerated;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -59,6 +62,8 @@ public class GridMenu : MonoBehaviour
         _gameView.gameObject.SetActive(true);
 
         _solver.OnBoardCreated(_board);
+
+        OnBoardLoaded.Invoke();
     }
     private void OnReturnToMenu()
     {
@@ -108,5 +113,6 @@ public class GridMenu : MonoBehaviour
     public void GenerateEmptyBoard(int boardSize)
     {
         OnBoardSelected(IBoard.State.GenerateEmpty(boardSize));
+        OnBoardGenerated.Invoke();
     }
 }

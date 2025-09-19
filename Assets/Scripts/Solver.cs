@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EditorTools;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Solver : MonoBehaviour
 {
@@ -15,11 +16,20 @@ public class Solver : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool _verboseLogging = false;
     [SerializeField] private bool _stepThrough = false;
+    [SerializeField] private bool _slowMode = false;
 
     [Space]
-    [SerializeField] private bool _solving = false;
+    [SerializeField] private bool _working = false;
     [SerializeField] private bool _abort = false;
     [SerializeField] private int _cycles;
+
+    public bool SlowMode { get => _slowMode; set => _slowMode = value; }
+    public bool Working { get => _working; }
+
+    public event System.Action OnSolverStart;
+    public event System.Action OnSolverFinished;
+    public UnityEvent OnSolverStart_UE;
+    public UnityEvent OnSolverFinished_UE;
 
 #if UNITY_EDITOR
     // Update is called once per frame
@@ -27,23 +37,23 @@ public class Solver : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.N) && _board != null)
         {
-            if (_solving)
+            if (_working)
             {
                 StopAllCoroutines();
-                _solving = false;
+                _working = false;
             }
             else
-                StartCoroutine(SolveBoard(_board, Input.GetKey(KeyCode.LeftShift)));
+                StartCoroutine(SolveBoardRoutine(_board, Input.GetKey(KeyCode.LeftShift)));
         }
         if (Input.GetKeyDown(KeyCode.G) && _board != null)
         {
-            if (_solving)
+            if (_working)
             {
                 StopAllCoroutines();
-                _solving = false;
+                _working = false;
             }
             else
-                StartCoroutine(GenerateBoard(_board, _generationTimeoutTime, Input.GetKey(KeyCode.LeftShift)));
+                StartCoroutine(GenerateBoardRoutine(_board, _generationTimeoutTime, Input.GetKey(KeyCode.LeftShift)));
         }
     }
 #endif
@@ -55,14 +65,37 @@ public class Solver : MonoBehaviour
     public void OnBoardDestroyed()
     {
         StopAllCoroutines();
-        _solving = false;
+        _working = false;
     }
 
-    private IEnumerator SolveBoard(Board board, bool slow)
+    public void SolveBoard()
     {
-        _solving = true;
+        if (!_board) return;
+        if (_working) return;
+
+        _abort = true;
+        StartCoroutine(SolveBoardRoutine(_board, _slowMode));
+    }
+    public void GenerateBoard()
+    {
+        if (!_board) return;
+        if (_working) return;
+
+        _abort = true;
+        StartCoroutine(GenerateBoardRoutine(_board, _generationTimeoutTime, _slowMode));
+    }
+    public void Abort() { if (_working) _abort = true; }
+
+    private IEnumerator SolveBoardRoutine(Board board, bool slow)
+    {
+        _working = true;
         _cycles = 0;
         _abort = false;
+
+        this.Log("Starting Solver. Slow Mode: " + _slowMode);
+
+        OnSolverStart?.Invoke();
+        OnSolverStart_UE.Invoke();
 
         if (slow)
             yield return SolveRecursiveSlow(board, _cyclePauseTime);
@@ -84,13 +117,21 @@ public class Solver : MonoBehaviour
 
         this.Log("Board Solved: " + board.ValidateSolved());
 
-        _solving = false;
+        _working = false;
+
+        OnSolverFinished?.Invoke();
+        OnSolverFinished_UE.Invoke();
     }
-    private IEnumerator GenerateBoard(Board board, float timeOutTime, bool slow)
+    private IEnumerator GenerateBoardRoutine(Board board, float timeOutTime, bool slow)
     {
-        _solving = true;
+        _working = true;
         _cycles = 0;
         _abort = false;
+
+        this.Log("Starting Generator. Slow Mode: " + _slowMode);
+
+        OnSolverStart?.Invoke();
+        OnSolverStart_UE.Invoke();
 
         board.SetState(IBoard.State.GenerateEmpty(board.BoardSize));
         board.AllSquares[Random.Range(0, board.AllSquares.Length)].Number = Random.Range(1, board.BoardSize + 1);
@@ -136,7 +177,7 @@ public class Solver : MonoBehaviour
                     _abort = true;
 
                     this.Log("Generation Timeout");
-                    StartCoroutine(GenerateBoard(board, timeOutTime * 1.1f, slow));
+                    StartCoroutine(GenerateBoardRoutine(board, timeOutTime * 1.1f, slow));
                     yield break;
                 }
             }
@@ -150,7 +191,10 @@ public class Solver : MonoBehaviour
 
         this.Log("Generation Successful: " + board.ValidateSolved());
 
-        _solving = false;
+        _working = false;
+
+        OnSolverFinished?.Invoke();
+        OnSolverFinished_UE.Invoke();
     }
 
     private IEnumerator SolveRecursiveSlow(IBoard board, float waitTime, int recursionDepth = 0)

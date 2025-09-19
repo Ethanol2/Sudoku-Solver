@@ -21,7 +21,7 @@ public class PuzzleBook : ScriptableObject
         {
             string text = _importAsset.text;
             _importAsset = null;
-            var temp = ImporterExporter.ImportBoardLinesToImportedBoards(text);
+            var temp = ImporterExporter.ImportBoardLinesToPuzzleBook(text);
             this.Log(temp.Count);
             _boards = temp;
         }
