@@ -43,7 +43,7 @@ public class Solver : MonoBehaviour
                 _solving = false;
             }
             else
-                StartCoroutine(GenerateBoard(_board, Input.GetKey(KeyCode.LeftShift)));
+                StartCoroutine(GenerateBoard(_board, _generationTimeoutTime, Input.GetKey(KeyCode.LeftShift)));
         }
     }
 #endif
@@ -86,7 +86,7 @@ public class Solver : MonoBehaviour
 
         _solving = false;
     }
-    private IEnumerator GenerateBoard(Board board, bool slow)
+    private IEnumerator GenerateBoard(Board board, float timeOutTime, bool slow)
     {
         _solving = true;
         _cycles = 0;
@@ -109,12 +109,12 @@ public class Solver : MonoBehaviour
             {
                 yield return null;
                 t += Time.deltaTime;
-                if (t > _generationTimeoutTime)
+                if (t > timeOutTime)
                 {
                     _abort = true;
 
                     this.Log("Generation Timeout");
-                    StartCoroutine(GenerateBoard(board, slow));
+                    StartCoroutine(GenerateBoard(board, timeOutTime * 1.1f, slow));
                     yield break;
                 }
             }
@@ -131,12 +131,12 @@ public class Solver : MonoBehaviour
             {
                 yield return null;
                 t += Time.deltaTime;
-                if (t > _generationTimeoutTime)
+                if (t > timeOutTime)
                 {
                     _abort = true;
 
                     this.Log("Generation Timeout");
-                    StartCoroutine(GenerateBoard(board, slow));
+                    StartCoroutine(GenerateBoard(board, timeOutTime * 1.1f, slow));
                     yield break;
                 }
             }

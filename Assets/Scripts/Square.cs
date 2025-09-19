@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using EditorTools;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class Square : MonoBehaviour, ISquare
@@ -13,6 +14,7 @@ public class Square : MonoBehaviour, ISquare
     [SerializeField] private TMP_Text _notePrefab;
     [SerializeField] private TMP_Text _numberDisplay;
     [SerializeField] private Button _button;
+    [SerializeField] private RightClickButton _rightClickButton;
 
     [Header("Debug")]
     [SerializeField] private int _number = 0;
@@ -32,7 +34,12 @@ public class Square : MonoBehaviour, ISquare
         {
             int oldNum = _number;
 
-            _number = Mathf.Clamp(value, 0, _board.BoardSize);
+            _number = value;
+
+            if (_number < 0)
+                _number = _board.BoardSize;
+            else if (_number > _board.BoardSize)
+                _number = 0;
 
             _numberDisplay.gameObject.SetActive(_number != 0);
             _numberDisplay.text = _number.ToString();
@@ -59,6 +66,7 @@ public class Square : MonoBehaviour, ISquare
     void OnEnable()
     {
         _button.onClick.AddListener(OnClicked);
+        _rightClickButton.OnClick.AddListener(OnRightClicked);
 
         if (_board)
             _board.OnNoteModeToggle += OnNoteModeToggle;
@@ -66,6 +74,7 @@ public class Square : MonoBehaviour, ISquare
     void OnDisable()
     {
         _button.onClick.RemoveListener(OnClicked);
+        _rightClickButton.OnClick.RemoveListener(OnRightClicked);
 
         if (_board)
             _board.OnNoteModeToggle -= OnNoteModeToggle;
@@ -133,13 +142,21 @@ public class Square : MonoBehaviour, ISquare
         }
         else
         {
-            int newNum = _number + 1;
-            if (newNum > _board.BoardSize)
-                newNum = 0;
-
-            Number = newNum;
+            Number++;
         }
     }
+    private void OnRightClicked()
+    {
+        if (_board.NoteMode)
+        {
+            _notes[_board.NoteNumber] = !_notes[_board.NoteNumber];
+        }
+        else
+        {
+            Number--;
+        }
+    }
+
     private void OnNoteModeToggle(bool state)
     {
         if (_number > 0)
