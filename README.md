@@ -111,7 +111,7 @@ Obviously I could just write a normal recursive method and let it go, but lockin
 My next task is to wrap my functional but ugly programmer UI into something presentable.
 
 ## Sources
-Massive thanks to grantm for having this [repo of boards](https://github.com/grantm/sudoku-exchange-puzzle-bank) available
-While I didn't ultimately use it, this was very interesting. [Sudoku Creation and Grading by Andrew C. Stuart](https://www.sudokuwiki.org/Sudoku_Creation_and_Grading.pdf)
-[This article by David Carmel](https://medium.com/@davidcarmel/solving-sudoku-by-heuristic-search-b0c2b2c5346e) got me through a roadblock when writing the solver.
-["Tips on Solving Sudoku Puzzles](https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php) is listed as a source in David Carmel's article. Also very helpful.
+- Massive thanks to grantm for having this [repo of boards](https://github.com/grantm/sudoku-exchange-puzzle-bank) available
+- While I didn't ultimately use it, this was very interesting. [Sudoku Creation and Grading by Andrew C. Stuart](https://www.sudokuwiki.org/Sudoku_Creation_and_Grading.pdf)
+- [This article by David Carmel](https://medium.com/@davidcarmel/solving-sudoku-by-heuristic-search-b0c2b2c5346e) got me through a roadblock when writing the solver.
+- ["Tips on Solving Sudoku Puzzles](https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php) is listed as a source in David Carmel's article. Also very helpful.
