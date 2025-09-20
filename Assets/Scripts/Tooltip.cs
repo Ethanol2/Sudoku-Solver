@@ -10,6 +10,8 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField, TextArea] private string _tooltip = "This is an empty tooltip. Should probably fill this with something";
     [SerializeField] private float _timeToTooltip = 2f;
+    [SerializeField] private Vector2 _positionPadding = new Vector2(2f, -2f);
+    [SerializeField] private bool _closeOnClick = true;
 
     [Space]
     [SerializeField] private RectTransform _tooltipCanvas;
@@ -17,7 +19,21 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] private TMP_Text _tooltipTextObj;
 
     private bool _pointerEntered = false;
+    private Camera cam;
 
+    void OnValidate()
+    {
+        if (!_tooltipCanvas && !_tooltipPanel && !_tooltipTextObj)
+        {
+            _tooltipCanvas = GameObject.FindGameObjectWithTag("Tooltip").transform as RectTransform;
+            _tooltipPanel = _tooltipCanvas.GetChild(0) as RectTransform;
+            _tooltipTextObj = _tooltipPanel.GetComponentInChildren<TMP_Text>();
+        }
+    }
+    void Awake()
+    {
+        cam = Camera.main;
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
         _pointerEntered = true;
@@ -29,40 +45,50 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         _pointerEntered = false;
         CancelInvoke();
         _tooltipPanel.gameObject.SetActive(false);
+        StopAllCoroutines();
     }
 
     public void DisplayTooltip()
     {
         if (!_pointerEntered) return;
+        StartCoroutine(TooltipRoutine());
+    }
+    private IEnumerator TooltipRoutine()
+    {
+        _tooltipPanel.gameObject.SetActive(true);
+        _tooltipTextObj.text = _tooltip;
 
+        Vector2 panelSize = _tooltipPanel.sizeDelta; //new Vector2(_tooltipPanel.GetWidth(), _tooltipPanel.GetHeight());
+        panelSize.y = -panelSize.y;
 
         Vector2 panelPosition;
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(_tooltipCanvas, Input.mousePosition, Camera.main, out panelPosition))
-            this.LogError("Something went wrong with the tooltip panel");
 
-        Vector2 panelSize = new Vector2(_tooltipPanel.GetWidth(), _tooltipPanel.GetHeight());
+        while (_pointerEntered)
+        {
+            if (_closeOnClick && Input.GetMouseButtonDown(0))
+                break;
 
-        // Check if the panel is clipping the viewport, and have it snap to the otherside if yes
+            panelPosition = Input.mousePosition;
+            panelPosition = cam.ScreenToViewportPoint(panelPosition);
+            this.Log(panelPosition);
+            panelPosition = (_tooltipCanvas.sizeDelta * panelPosition) - (_tooltipCanvas.sizeDelta / 2f);
+            this.Log(panelPosition);
 
-        _tooltipTextObj.text = _tooltip;
-        _tooltipPanel.gameObject.SetActive(true);
-    }
-}
+            panelPosition += panelSize / 2f + _positionPadding;
 
-/// <summary>
-/// Source: https://discussions.unity.com/t/solved-getting-position-and-size-of-recttransform-in-screen-coordinates/774050/5
-/// </summary>
-public static class RectTransformExtension
-{
-    public static float GetWidth(this RectTransform rt)
-    {
-        var w = (rt.anchorMax.x - rt.anchorMin.x) * Screen.width + rt.sizeDelta.x;
-        return w;
-    }
+            if (!_tooltipCanvas.rect.Contains(panelPosition + panelSize))
+            {
+                if (panelPosition.x + panelSize.x > _tooltipCanvas.sizeDelta.x / 2f)
+                    panelPosition.x -= panelSize.x;
+                if (panelPosition.y + panelSize.y < _tooltipCanvas.sizeDelta.y / -2f)
+                    panelPosition.y += panelSize.y;
+            }
 
-    public static float GetHeight(this RectTransform rt)
-    {
-        var h = (rt.anchorMax.y - rt.anchorMin.y) * Screen.height + rt.sizeDelta.y;
-        return h;
+            _tooltipPanel.localPosition = panelPosition;
+
+            yield return null;
+        }
+
+        _tooltipPanel.gameObject.SetActive(false);
     }
 }
