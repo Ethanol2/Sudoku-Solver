@@ -28,12 +28,9 @@ public class GameplayUI : MonoBehaviour
 
     void OnValidate()
     {
-        if (_noteNumberButtonPrefab && _noteNumbersParent)
+        if (_noteNumberButtonPrefab && _noteNumbersParent && !Application.isPlaying)
         {
-            while (_noteNumbers.Count < 9)
-                _noteNumbers.Add(GameObject.Instantiate(_noteNumberButtonPrefab, _noteNumbersParent));
-
-            SetRectAnchors(_noteNumbers, _9x9Dimensions);
+            ConfigureNoteButtons(9);
         }
     }
 
@@ -66,7 +63,8 @@ public class GameplayUI : MonoBehaviour
             if (Application.isPlaying)
             {
                 buttons[i].onClick.RemoveAllListeners();
-                buttons[i].onClick.AddListener(() => OnNoteButtonClicked(buttons[i].transform.GetSiblingIndex()));
+                int index = i;
+                buttons[i].onClick.AddListener(() => OnNoteButtonClicked(index));
             }
         }
     }
@@ -87,13 +85,23 @@ public class GameplayUI : MonoBehaviour
 
     private void OnNoteButtonClicked(int index)
     {
-        _board.SetNoteNumber(index + 1);
+        _board.SetNoteNumber(_noteNumbers[index].transform.GetSiblingIndex() + 1);
+
+        foreach (Button button in _noteNumbers)
+        {
+            button.interactable = true;
+            button.image.raycastTarget = true;
+            button.image.color = button.colors.normalColor;
+        }
+
+        _noteNumbers[index].image.raycastTarget = false;
+        _noteNumbers[index].image.color = _noteNumbers[index].colors.pressedColor;
     }
 
     private void OnBoardGenerated()
     {
-        _notesToggle.transform.parent.gameObject.SetActive(false);
-        _noteNumbersParent.gameObject.SetActive(false);
+        _notesToggle.transform.parent.parent.gameObject.SetActive(false);
+        _noteNumbersParent.parent.gameObject.SetActive(false);
     }
 
     private void OnBoardLoaded()
@@ -110,13 +118,14 @@ public class GameplayUI : MonoBehaviour
     {
         if (_board != null)
             _board.ToggleNoteMode(isOn);
+
+        foreach (Button button in _noteNumbers)
+            button.interactable = isOn;
     }
 
     private void ConfigureNoteButtons(int boardSize)
     {
-        int count = boardSize * boardSize;
-
-        while (_noteNumbers.Count < count)
+        while (_noteNumbers.Count < boardSize)
             _noteNumbers.Add(GameObject.Instantiate(_noteNumberButtonPrefab, _noteNumbersParent));
 
         switch (boardSize)
