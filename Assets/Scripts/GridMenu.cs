@@ -33,6 +33,8 @@ public class GridMenu : MonoBehaviour
     public UnityEvent OnBoardLoaded;
     public UnityEvent OnBoardGenerated;
 
+    public Board CurrentBoard => _board;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
