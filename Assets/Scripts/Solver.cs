@@ -105,12 +105,31 @@ public class Solver : MonoBehaviour
             yield return SolveRecursiveSlow(board, 0f);
 #else
             DataOnlyBoard dBoard = board;
-            Task task = Task.Run(() => SolveRecursive(dBoard));
 
-            yield return new WaitUntil(() => task.IsCompleted);
+            while (_cycles < _cycleLimit)
+            {
+                Task task = Task.Run(() => SolveRecursive(dBoard));
 
-            if (task.Exception != null)
-                throw task.Exception;
+                yield return new WaitUntil(() => task.IsCompleted);
+
+                if (task.Exception == null)
+                {
+                    if (!dBoard.ValidateSolved())
+                        yield return WaitForInstruction();
+                }
+                else
+                {
+                    Modal.ShowModal(new Modal.ModalData()
+                    {
+                        Title = "Something went Wrong",
+                        Body = "The solver encountered an error",
+                        ShowConfirmButton = true,
+                        TimeoutTime = 30f
+                    });
+                    throw task.Exception;
+                }
+            }
+
             board.SetState(dBoard);
 #endif
         }
@@ -202,6 +221,13 @@ public class Solver : MonoBehaviour
         if (recursionDepth >= 1020)
         {
             this.Log("Something went wrong: Max recursion reached");
+            Modal.ShowModal(new Modal.ModalData()
+            {
+                Title = "Something went Wrong",
+                Body = "The solver hit the maximum recursion depth. That shouldn't happen.",
+                ShowConfirmButton = true,
+                TimeoutTime = 30f
+            });
             _abort = true;
             yield break;
         }
@@ -269,10 +295,13 @@ public class Solver : MonoBehaviour
 
                     yield return SolveRecursiveSlow(board, recursionDepth + 1);
 
-                    if (board.ValidateSolved() || _cycles >= _cycleLimit)
-                        _abort = true;
+                    if (_cycles >= _cycleLimit)
+                    {
+                        yield return WaitForInstruction();
+                        _abort = _cycles >= _cycleLimit;
+                    }
 
-                    if (_abort)
+                    if (_abort || board.ValidateSolved())
                         yield break;
 
                     board.SetState(state);
@@ -407,6 +436,31 @@ public class Solver : MonoBehaviour
         else
         {
             yield return new WaitForSeconds(waitTime);
+        }
+    }
+    private IEnumerator WaitForInstruction()
+    {
+        if (Modal.Instance)
+        {
+            int answer = 0;
+            Modal.ShowModal(new Modal.ModalData()
+            {
+                Title = "No Solution Found",
+                Body = "The solver couldn't find a solution fast enough. Keep trying or stop it now?",
+
+                ShowConfirmButton = true,
+                ConfirmButtonText = "Continue",
+                ConfirmButtonEvent = () => answer = 1,
+
+                ShowCancelButton = true,
+                CancelButtonText = "Stop",
+                CancelButtonEvent = () => answer = 2
+            });
+
+            yield return new WaitWhile(() => answer == 0);
+
+            if (answer == 1)
+                _cycles = 0;
         }
     }
 }

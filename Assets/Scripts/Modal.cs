@@ -86,21 +86,21 @@ public class Modal : MonoBehaviour
         _titleText.text = data.Title;
         _bodyText.text = data.Body;
 
-        _confirmButton.gameObject.SetActive(data.ShowConfrimButton);
-        if (data.ShowConfrimButton)
+        _confirmButton.gameObject.SetActive(data.ShowConfirmButton);
+        if (data.ShowConfirmButton)
         {
-            _confirmButtonText.text = data.ConfirmButtonText;
+            _confirmButtonText.text = data.ConfirmButtonText == null ? "Ok" : data.ConfirmButtonText;
             _passedConfrimAction = data.ConfirmButtonEvent;
         }
 
         _cancelButton.gameObject.SetActive(data.ShowCancelButton);
         if (data.ShowCancelButton)
         {
-            _cancelButtonText.text = data.CancelButtonText;
+            _cancelButtonText.text = data.CancelButtonText == null ? "Cancel" : data.CancelButtonText;
             _passedCancelAction = data.CancelButtonEvent;
         }
 
-        if (data.TimeoutTime <= 0 && !data.ShowCancelButton && !data.ShowConfrimButton)
+        if (data.TimeoutTime <= 0 && !data.ShowCancelButton && !data.ShowConfirmButton)
             data.TimeoutTime = 30f; // Default timeout for modals without buttons
 
         if (data.TimeoutTime > 0)
@@ -123,15 +123,16 @@ public class Modal : MonoBehaviour
         return false;
     }
 
+    #nullable enable
     public struct ModalData
     {
         public string Title;
         public string Body;
-        public bool ShowConfrimButton;
-        public string ConfirmButtonText;
+        public bool ShowConfirmButton;
+        public string? ConfirmButtonText;
         public System.Action ConfirmButtonEvent;
         public bool ShowCancelButton;
-        public string CancelButtonText;
+        public string? CancelButtonText;
         public System.Action CancelButtonEvent;
         public float TimeoutTime;
         public System.Action TimeoutEvent;
