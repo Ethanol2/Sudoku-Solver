@@ -51,7 +51,16 @@ public class Square : MonoBehaviour, ISquare
     }
     public ISquare.Notepad Notes => _notes;
     public Color Colour { get => _button.image.color; set => _button.image.color = value; }
-    public bool Locked { get => _locked; set { _locked = value; _button.targetGraphic.raycastTarget = _numberDisplay.raycastTarget = !_locked; } }
+    public bool Locked
+    {
+        get => _locked;
+        set
+        {
+            _locked = value;
+            _button.targetGraphic.raycastTarget = _numberDisplay.raycastTarget = !_locked;
+            _numberDisplay.fontStyle = _locked ? FontStyles.Bold : FontStyles.Normal;
+        }
+    }
     public int GroupCount => _groups.Length;
 
     // Events

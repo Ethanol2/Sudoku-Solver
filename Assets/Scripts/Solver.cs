@@ -114,8 +114,9 @@ public class Solver : MonoBehaviour
 
                 if (task.Exception == null)
                 {
-                    if (!dBoard.ValidateSolved())
-                        yield return WaitForInstruction();
+                    if (dBoard.ValidateSolved())
+                        break;
+                    yield return WaitForInstruction();
                 }
                 else
                 {
@@ -276,7 +277,7 @@ public class Solver : MonoBehaviour
                         {
                             board.AllSquares[i].Number = notes[n];
 
-                            int score = GetSquareScore(board.AllSquares[i]) + notes.Length;
+                            int score = GetSquareScore(board.AllSquares[i], board.BoardSize) + notes.Length;
 
                             bestSquares.Add((i, score, notes[n]));
 
@@ -295,12 +296,6 @@ public class Solver : MonoBehaviour
 
                     yield return SolveRecursiveSlow(board, recursionDepth + 1);
 
-                    if (_cycles >= _cycleLimit)
-                    {
-                        yield return WaitForInstruction();
-                        _abort = _cycles >= _cycleLimit;
-                    }
-
                     if (_abort || board.ValidateSolved())
                         yield break;
 
@@ -311,6 +306,11 @@ public class Solver : MonoBehaviour
             }
 
             _cycles++;
+            if (_cycles >= _cycleLimit)
+            {
+                yield return WaitForInstruction();
+                _abort = _cycles >= _cycleLimit;
+            }
         }
         while (!board.ValidateSolved() && _cycles < _cycleLimit);
     }
@@ -365,7 +365,7 @@ public class Solver : MonoBehaviour
                         {
                             board.AllSquares[i].Number = notes[n];
 
-                            int score = GetSquareScore(board.AllSquares[i]) + notes.Length;
+                            int score = GetSquareScore(board.AllSquares[i], board.BoardSize) + notes.Length;
 
                             bestSquares.Add((i, score, notes[n]));
 
@@ -400,7 +400,7 @@ public class Solver : MonoBehaviour
         }
         while (!board.ValidateSolved() && _cycles < _cycleLimit);
     }
-    private int GetSquareScore(ISquare changed)
+    private int GetSquareScore(ISquare changed, int boardSize)
     {
         int score = 0;
 
@@ -410,7 +410,7 @@ public class Solver : MonoBehaviour
             {
                 if (square.Number == 0)
                 {
-                    score += square.GetValidNumbersCount();
+                    score += boardSize - square.GetValidNumbersCount();
                 }
             }
         }
@@ -460,7 +460,14 @@ public class Solver : MonoBehaviour
             yield return new WaitWhile(() => answer == 0);
 
             if (answer == 1)
+            {
                 _cycles = 0;
+                _abort = false;
+            }
+            else
+            {
+                _cycles = _cycleLimit;
+            }
         }
     }
 }
