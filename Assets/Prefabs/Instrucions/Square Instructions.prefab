@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 10388323042459531}
   - component: {fileID: 90414865648944914}
   - component: {fileID: 539594385105673098}
+  - component: {fileID: 6296397444608553977}
   m_Layer: 5
   m_Name: Groups Coour Gif
   m_TagString: Untagged
@@ -66,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -6095694229808741713, guid: 421fa943c70fffcb091140d2bc4ce683, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1146576fbeb0e92f78393ca82c8ed198, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -90,6 +91,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &6296397444608553977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3994395096652284418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3f106a78e1aa142b294d8d1a41114b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Gif: {fileID: 11400000, guid: 5536a30eaf569fc5191b678a0a7c3aae, type: 2}
 --- !u!1 &4466545699284214435
 GameObject:
   m_ObjectHideFlags: 0
@@ -156,7 +170,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Clues are marked by having <b>bold</b> numbers. \nThey can't be changed"
+  m_text: Clues are marked by having <b>bold</b> numbers. They can't be changed
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -221,7 +235,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 600, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -778,10 +792,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "If a square violates the rules, the squares \naffected will change colour.\n\nIn
-    the example, the row contains a 1, \nthe quadrant contains a 2, and the \ncolumn
-    contains 3. When the example \nsquare is changed to violate the rules for \neach
-    group the other squares turn red."
+  m_text: 'If a square violates the rules, the squares affected will change colour.
+
+
+    In
+    the example, the row contains a 1, the quadrant contains a 2, and the column
+    contains 3. When the example square is changed to violate the rules for each
+    group the other squares turn red.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -846,7 +863,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 600, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -969,7 +986,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 655182461762820783, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 720
+      value: 900
       objectReference: {fileID: 0}
     - target: {fileID: 655182461762820783, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1080,6 +1097,10 @@ PrefabInstance:
       value: "Squares can be clicked on to change its number.\n\t- <b>Left Click</b>
         <i>increases</i> the number by 1\n\t- <b>Right Click</b> <i>decreases</i>
         the number by 1"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8237267905276625157, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_margin.z
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: 8237267905276625157, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
       propertyPath: m_VerticalAlignment

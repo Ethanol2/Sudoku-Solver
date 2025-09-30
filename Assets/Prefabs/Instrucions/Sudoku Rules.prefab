@@ -88,9 +88,53 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1061742835564112617, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1061742835564112617, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1061742835564112617, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1061742835564112617, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1061742835564112617, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5207637232079174108, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_text
+      value: Sudoku Rules
+      objectReference: {fileID: 0}
     - target: {fileID: 5484727442994310259, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
       propertyPath: m_Name
       value: Sudoku Rules
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082686365079605243, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082686365079605243, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082686365079605243, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082686365079605243, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082686365079605243, guid: 584f8b40b19a3132085497e8efdd0968, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

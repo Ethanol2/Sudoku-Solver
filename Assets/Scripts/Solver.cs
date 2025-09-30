@@ -175,7 +175,7 @@ public class Solver : MonoBehaviour
                     _abort = true;
 
                     this.Log("Generation Timeout");
-                    StartCoroutine(GenerateBoard(board, timeOutTime * 1.1f, slow));
+                    StartCoroutine(GenerateBoardRoutine(board, timeOutTime * 1.1f, slow));
                     yield break;
                 }
             }

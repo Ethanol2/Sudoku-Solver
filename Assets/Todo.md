@@ -1,0 +1,5 @@
+- Fix stop solver button. Doesn't stop the coroutine fast enough. Alternatively add a button state that says "Stopping...". Either way, needs to be faster
+- Reformat game GUI to use absolute values. Doesn't scale properly on different resolutions. 
+- Fix tooltip. Sometimes tooltip window doesn't snap to the mouse properly
+- Add right click button interactions to match regular button. (Hover, pressed, etc)
+- Implement trackpad for mobile
