@@ -13,8 +13,7 @@ public class Square : MonoBehaviour, ISquare
     [SerializeField] private Transform _notesParent;
     [SerializeField] private TMP_Text _notePrefab;
     [SerializeField] private TMP_Text _numberDisplay;
-    [SerializeField] private Button _button;
-    [SerializeField] private RightClickButton _rightClickButton;
+    [SerializeField] private AnyClickButton _button;
 
     [Header("Debug")]
     [SerializeField] private int _number = 0;
@@ -68,22 +67,22 @@ public class Square : MonoBehaviour, ISquare
 
     void OnValidate()
     {
-        _button = this.GetComponentInChildren<Button>();
+        _button = this.GetComponentInChildren<AnyClickButton>();
         Debug.Assert(_button);
         Debug.Assert(_notesParent);
     }
     void OnEnable()
     {
-        _button.onClick.AddListener(OnClicked);
-        _rightClickButton.OnClick.AddListener(OnRightClicked);
+        _button.OnLeftClick.AddListener(OnLeftClicked);
+        _button.OnRightClick.AddListener(OnRightClicked);
 
         if (_board)
             _board.OnNoteModeToggle += OnNoteModeToggle;
     }
     void OnDisable()
     {
-        _button.onClick.RemoveListener(OnClicked);
-        _rightClickButton.OnClick.RemoveListener(OnRightClicked);
+        _button.OnLeftClick.RemoveListener(OnLeftClicked);
+        _button.OnRightClick.RemoveListener(OnRightClicked);
 
         if (_board)
             _board.OnNoteModeToggle -= OnNoteModeToggle;
@@ -143,7 +142,7 @@ public class Square : MonoBehaviour, ISquare
         return count;
     }
 
-    private void OnClicked()
+    private void OnLeftClicked()
     {
         if (_board.NoteMode)
         {

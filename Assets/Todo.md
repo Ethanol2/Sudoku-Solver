@@ -3,3 +3,5 @@
 - Fix tooltip. Sometimes tooltip window doesn't snap to the mouse properly
 - Add right click button interactions to match regular button. (Hover, pressed, etc)
 - Implement trackpad for mobile
+- Implement "Continue" button for solver properly
+- Better gif solution!
