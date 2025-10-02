@@ -79,6 +79,9 @@ public class AnyClickButtonEditor : UnityEditor.UI.ButtonEditor
 
         UnityEditor.EditorGUILayout.PropertyField(enableRightClick);
         UnityEditor.EditorGUILayout.PropertyField(enableMiddleClick);
+
+        GUILayout.Space(10f);
+
         UnityEditor.EditorGUILayout.PropertyField(onLeftClick);
         UnityEditor.EditorGUILayout.PropertyField(onRightClick);
         UnityEditor.EditorGUILayout.PropertyField(onMiddleClick);
