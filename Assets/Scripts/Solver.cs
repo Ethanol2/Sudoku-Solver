@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EditorTools;
@@ -30,6 +32,9 @@ public class Solver : MonoBehaviour
     public event System.Action OnSolverFinished;
     public UnityEvent OnSolverStart_UE;
     public UnityEvent OnSolverFinished_UE;
+
+    private TaskCompletionSource<bool> _continueSolvingFlag;
+    private ConcurrentQueue<System.Action> _asyncActions = new ConcurrentQueue<System.Action>();
 
 #if UNITY_EDITOR
     // Update is called once per frame
@@ -106,29 +111,30 @@ public class Solver : MonoBehaviour
 #else
             DataOnlyBoard dBoard = board;
 
-            while (_cycles < _cycleLimit)
+            _asyncActions.Clear();
+
+            Task task = Task.Run(() => SolveRecursive(dBoard));
+
+            while (!task.IsCompleted)
             {
-                Task task = Task.Run(() => SolveRecursive(dBoard));
-
-                yield return new WaitUntil(() => task.IsCompleted);
-
-                if (task.Exception == null)
+                while (_asyncActions.TryDequeue(out var action))
                 {
-                    if (dBoard.ValidateSolved())
-                        break;
-                    yield return WaitForInstruction();
+                    action();
                 }
-                else
+                yield return null;
+            }
+            //yield return new WaitUntil(() => task.IsCompleted);
+
+            if (task.Exception != null)
+            {
+                Modal.ShowModal(new Modal.ModalData()
                 {
-                    Modal.ShowModal(new Modal.ModalData()
-                    {
-                        Title = "Something went Wrong",
-                        Body = "The solver encountered an error",
-                        ShowConfirmButton = true,
-                        TimeoutTime = 30f
-                    });
-                    throw task.Exception;
-                }
+                    Title = "Something went Wrong",
+                    Body = "The solver encountered an error",
+                    ShowConfirmButton = true,
+                    TimeoutTime = 30f
+                });
+                throw task.Exception;
             }
 
             board.SetState(dBoard);
@@ -260,6 +266,9 @@ public class Solver : MonoBehaviour
 
             yield return Step(waitTime);
 
+            if (_abort)
+                yield break;
+
             if (goodSquareCount == 0)
             {
                 Verbose("No good squares", recursionDepth);
@@ -314,7 +323,7 @@ public class Solver : MonoBehaviour
         }
         while (!board.ValidateSolved() && _cycles < _cycleLimit);
     }
-    private void SolveRecursive(DataOnlyBoard board, int recursionDepth = 0)
+    private async void SolveRecursive(DataOnlyBoard board, int recursionDepth = 0)
     {
         if (recursionDepth >= 1020)
         {
@@ -374,6 +383,8 @@ public class Solver : MonoBehaviour
                     }
                 }
 
+                // Correct Comparison: x.Item2 < y.Item2 ? -1 : 1
+                // If the comparer is flipped it's because I was doing tests on the solver and forgot to swith it back
                 bestSquares.Sort((x, y) => x.Item2 < y.Item2 ? -1 : 1);
 
                 foreach (var indexScore in bestSquares)
@@ -384,7 +395,7 @@ public class Solver : MonoBehaviour
 
                     SolveRecursive(board, recursionDepth + 1);
 
-                    if (board.ValidateSolved() || _cycles >= _cycleLimit)
+                    if (board.ValidateSolved())
                         _abort = true;
 
                     if (_abort)
@@ -397,6 +408,31 @@ public class Solver : MonoBehaviour
             }
 
             _cycles++;
+            if (_cycles >= _cycleLimit)
+            {
+                _continueSolvingFlag = new TaskCompletionSource<bool>();
+                _asyncActions.Enqueue(() =>
+                {
+                    Modal.ShowModal(new Modal.ModalData()
+                    {
+                        Title = "No Solution Found",
+                        Body = "The solver couldn't find a solution fast enough. Keep trying or stop it now?",
+
+                        ShowConfirmButton = true,
+                        ConfirmButtonText = "Continue",
+                        ConfirmButtonEvent = () => _continueSolvingFlag.SetResult(false),
+
+                        ShowCancelButton = true,
+                        CancelButtonText = "Stop",
+                        CancelButtonEvent = () => _continueSolvingFlag.SetResult(true)
+                    });
+                });
+
+                this.Log("Waiting for continue response");
+                _abort = await _continueSolvingFlag.Task;
+                this.Log("Response: " + _abort);
+                _cycles = _abort ? _cycleLimit : 0;
+            }
         }
         while (!board.ValidateSolved() && _cycles < _cycleLimit);
     }

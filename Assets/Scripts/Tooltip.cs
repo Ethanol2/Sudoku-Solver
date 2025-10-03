@@ -56,11 +56,10 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     private IEnumerator TooltipRoutine()
     {
         _tooltipPanel.gameObject.SetActive(true);
+
         _tooltipTextObj.text = _tooltip;
 
-        Vector2 panelSize = _tooltipPanel.sizeDelta; //new Vector2(_tooltipPanel.GetWidth(), _tooltipPanel.GetHeight());
-        panelSize.y = -panelSize.y;
-
+        Vector2 panelSize;
         Vector2 panelPosition;
 
         while (_pointerEntered)
@@ -68,11 +67,12 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             if (_closeOnClick && Input.GetMouseButtonDown(0))
                 break;
 
+            panelSize = _tooltipPanel.sizeDelta;
+            panelSize.y = -panelSize.y;
+
             panelPosition = Input.mousePosition;
             panelPosition = cam.ScreenToViewportPoint(panelPosition);
-            this.Log(panelPosition);
             panelPosition = (_tooltipCanvas.sizeDelta * panelPosition) - (_tooltipCanvas.sizeDelta / 2f);
-            this.Log(panelPosition);
 
             panelPosition += panelSize / 2f + _positionPadding;
 
