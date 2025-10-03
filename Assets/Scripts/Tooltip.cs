@@ -21,15 +21,6 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     private bool _pointerEntered = false;
     private Camera cam;
 
-    void OnValidate()
-    {
-        if (!_tooltipCanvas && !_tooltipPanel && !_tooltipTextObj)
-        {
-            _tooltipCanvas = GameObject.FindGameObjectWithTag("Tooltip").transform as RectTransform;
-            _tooltipPanel = _tooltipCanvas.GetChild(0) as RectTransform;
-            _tooltipTextObj = _tooltipPanel.GetComponentInChildren<TMP_Text>();
-        }
-    }
     void Awake()
     {
         cam = Camera.main;
@@ -81,7 +72,7 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                 if (panelPosition.x + panelSize.x > _tooltipCanvas.sizeDelta.x / 2f)
                     panelPosition.x -= panelSize.x;
                 if (panelPosition.y + panelSize.y < _tooltipCanvas.sizeDelta.y / -2f)
-                    panelPosition.y += panelSize.y;
+                    panelPosition.y -= panelSize.y;
             }
 
             _tooltipPanel.localPosition = panelPosition;

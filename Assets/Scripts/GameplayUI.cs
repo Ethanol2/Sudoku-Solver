@@ -106,8 +106,8 @@ public class GameplayUI : MonoBehaviour
 
     private void OnBoardLoaded()
     {
-        _notesToggle.transform.parent.gameObject.SetActive(true);
-        _noteNumbersParent.gameObject.SetActive(true);
+        _notesToggle.transform.parent.parent.gameObject.SetActive(true);
+        _noteNumbersParent.parent.gameObject.SetActive(true);
 
         _board = _gridMenu.CurrentBoard;
         ConfigureNoteButtons(_board.BoardSize);

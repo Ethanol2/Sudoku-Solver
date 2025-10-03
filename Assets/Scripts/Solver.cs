@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using EditorTools;
 using UnityEngine;
@@ -11,8 +9,8 @@ using UnityEngine.Events;
 public class Solver : MonoBehaviour
 {
     [SerializeField] private Board _board;
-    [SerializeField] private int _cycleLimit = 100;
-    [SerializeField] private float _cyclePauseTime = 0.1f;
+    [SerializeField] private int _stepLimit = 200000;
+    [SerializeField] private float _stepPauseTime = 0.1f;
     [SerializeField] private float _generationTimeoutTime = 1f;
 
     [Header("Debug")]
@@ -23,7 +21,7 @@ public class Solver : MonoBehaviour
     [Space]
     [SerializeField] private bool _working = false;
     [SerializeField] private bool _abort = false;
-    [SerializeField] private int _cycles;
+    [SerializeField] private int _steps;
 
     public bool SlowMode { get => _slowMode; set => _slowMode = value; }
     public bool Working { get => _working; }
@@ -62,6 +60,18 @@ public class Solver : MonoBehaviour
         }
     }
 #endif
+    void OnDisable()
+    {
+        _abort = true;
+    }
+    void OnDestroy()
+    {
+        _abort = true;
+    }
+    void OnApplicationQuit()
+    {
+        _abort = true;
+    }
 
     public void OnBoardCreated(Board board)
     {
@@ -75,17 +85,11 @@ public class Solver : MonoBehaviour
 
     public void SolveBoard()
     {
-        if (!_board) return;
-        if (_working) return;
-
         _abort = true;
         StartCoroutine(SolveBoardRoutine(_board, _slowMode));
     }
     public void GenerateBoard()
     {
-        if (!_board) return;
-        if (_working) return;
-
         _abort = true;
         StartCoroutine(GenerateBoardRoutine(_board, _generationTimeoutTime, _slowMode));
     }
@@ -93,8 +97,16 @@ public class Solver : MonoBehaviour
 
     private IEnumerator SolveBoardRoutine(Board board, bool slow)
     {
+        if (_working) yield break;
+        if (!board) yield break;
+        if (!Modal.Instance)
+        {
+            this.LogError("The solver uses the modal system to display messages. Please ensure there is a Modal component in the scene.");
+            yield break;
+        }
+
         _working = true;
-        _cycles = 0;
+        _steps = 0;
         _abort = false;
 
         this.Log("Starting Solver. Slow Mode: " + _slowMode);
@@ -103,11 +115,12 @@ public class Solver : MonoBehaviour
         OnSolverStart_UE.Invoke();
 
         if (slow)
-            yield return SolveRecursiveSlow(board, _cyclePauseTime);
+            yield return SafeRun(SolveRecursiveSlow(board, _stepPauseTime));
         else
         {
-#if UNITY_WEBGL
-            yield return SolveRecursiveSlow(board, 0f);
+#if false
+//#if UNITY_WEBGL
+            yield return SafeRun(SolveRecursiveSlow(board, 0f));
 #else
             DataOnlyBoard dBoard = board;
 
@@ -123,7 +136,6 @@ public class Solver : MonoBehaviour
                 }
                 yield return null;
             }
-            //yield return new WaitUntil(() => task.IsCompleted);
 
             if (task.Exception != null)
             {
@@ -150,8 +162,16 @@ public class Solver : MonoBehaviour
     }
     private IEnumerator GenerateBoardRoutine(Board board, float timeOutTime, bool slow)
     {
+        if (_working) yield break;
+        if (!board) yield break;
+        if (!Modal.Instance)
+        {
+            this.LogError("The solver uses the modal system to display messages. Please ensure there is a Modal component in the scene.");
+            yield break;
+        }
+
         _working = true;
-        _cycles = 0;
+        _steps = 0;
         _abort = false;
 
         this.Log("Starting Generator. Slow Mode: " + _slowMode);
@@ -164,55 +184,39 @@ public class Solver : MonoBehaviour
 
         if (slow)
         {
-            yield return SolveRecursiveSlow(board, _cyclePauseTime);
+            yield return SafeRun(SolveRecursiveSlow(board, _stepPauseTime));
         }
         else
         {
-#if UNITY_WEBGL
-            Coroutine generation = StartCoroutine(SolveRecursiveSlow(board, 0f));
 
-            float t = 0f;
-            while (!board.ValidateSolved())
-            {
-                yield return null;
-                t += Time.deltaTime;
-                if (t > timeOutTime)
-                {
-                    _abort = true;
-
-                    this.Log("Generation Timeout");
-                    StartCoroutine(GenerateBoardRoutine(board, timeOutTime * 1.1f, slow));
-                    yield break;
-                }
-            }
-#else
             DataOnlyBoard dBoard = board;
 
-            Task task = Task.Run(() =>
-            {
-                SolveRecursive(dBoard);
-            });
+            _asyncActions.Clear();
 
-            float t = 0f;
+            Task task = Task.Run(() => SolveRecursive(dBoard));
+
             while (!task.IsCompleted)
             {
-                yield return null;
-                t += Time.deltaTime;
-                if (t > timeOutTime)
+                while (_asyncActions.TryDequeue(out var action))
                 {
-                    _abort = true;
-
-                    this.Log("Generation Timeout");
-                    StartCoroutine(GenerateBoardRoutine(board, timeOutTime * 1.1f, slow));
-                    yield break;
+                    action();
                 }
+                yield return null;
             }
 
             if (task.Exception != null)
+            {
+                Modal.ShowModal(new Modal.ModalData()
+                {
+                    Title = "Something went Wrong",
+                    Body = "The solver encountered an error",
+                    ShowConfirmButton = true,
+                    TimeoutTime = 30f
+                });
                 throw task.Exception;
+            }
 
             board.SetState(dBoard);
-#endif
         }
 
         this.Log("Generation Successful: " + board.ValidateSolved());
@@ -246,6 +250,10 @@ public class Solver : MonoBehaviour
             foreach (ISquare square in board.AllSquares)
                 square.SetNotes();
 
+            yield return IncrementSteps();
+            if (_abort)
+                yield break;
+
             foreach (ISquare square in board.AllSquares)
             {
                 if (square.Number == 0)
@@ -264,8 +272,8 @@ public class Solver : MonoBehaviour
                 }
             }
 
-            yield return Step(waitTime);
-
+            yield return StepThrough(waitTime);
+            yield return IncrementSteps();
             if (_abort)
                 yield break;
 
@@ -297,6 +305,10 @@ public class Solver : MonoBehaviour
 
                 bestSquares.Sort((x, y) => x.Item2 < y.Item2 ? -1 : 1);
 
+                yield return IncrementSteps();
+                if (_abort)
+                    yield break;
+
                 foreach (var indexScore in bestSquares)
                 {
                     board.AllSquares[indexScore.Item1].Number = indexScore.Item3;
@@ -314,16 +326,11 @@ public class Solver : MonoBehaviour
                 yield break;
             }
 
-            _cycles++;
-            if (_cycles >= _cycleLimit)
-            {
-                yield return WaitForInstruction();
-                _abort = _cycles >= _cycleLimit;
-            }
+            yield return IncrementSteps();
         }
-        while (!board.ValidateSolved() && _cycles < _cycleLimit);
+        while (!board.ValidateSolved() && !_abort);
     }
-    private async void SolveRecursive(DataOnlyBoard board, int recursionDepth = 0)
+    private async Task SolveRecursive(DataOnlyBoard board, int recursionDepth = 0)
     {
         if (recursionDepth >= 1020)
         {
@@ -338,6 +345,10 @@ public class Solver : MonoBehaviour
 
             foreach (ISquare square in board.AllSquares)
                 square.SetNotes();
+
+            await IncrementStepsAsync();
+            if (_abort)
+                return;
 
             foreach (ISquare square in board.AllSquares)
             {
@@ -356,6 +367,10 @@ public class Solver : MonoBehaviour
                     }
                 }
             }
+
+            await IncrementStepsAsync();
+            if (_abort)
+                return;
 
             if (goodSquareCount == 0)
             {
@@ -387,18 +402,19 @@ public class Solver : MonoBehaviour
                 // If the comparer is flipped it's because I was doing tests on the solver and forgot to swith it back
                 bestSquares.Sort((x, y) => x.Item2 < y.Item2 ? -1 : 1);
 
+                await IncrementStepsAsync();
+                if (_abort)
+                    return;
+
                 foreach (var indexScore in bestSquares)
                 {
                     board.AllSquares[indexScore.Item1].Number = indexScore.Item3;
 
                     Verbose("Setting square " + board.AllSquares[indexScore.Item1].Name + " to " + board.AllSquares[indexScore.Item1].Number, recursionDepth);
 
-                    SolveRecursive(board, recursionDepth + 1);
+                    await SolveRecursive(board, recursionDepth + 1);
 
-                    if (board.ValidateSolved())
-                        _abort = true;
-
-                    if (_abort)
+                    if (_abort || _board.ValidateSolved())
                         return;
 
                     board.SetState(state);
@@ -407,34 +423,9 @@ public class Solver : MonoBehaviour
                 return;
             }
 
-            _cycles++;
-            if (_cycles >= _cycleLimit)
-            {
-                _continueSolvingFlag = new TaskCompletionSource<bool>();
-                _asyncActions.Enqueue(() =>
-                {
-                    Modal.ShowModal(new Modal.ModalData()
-                    {
-                        Title = "No Solution Found",
-                        Body = "The solver couldn't find a solution fast enough. Keep trying or stop it now?",
-
-                        ShowConfirmButton = true,
-                        ConfirmButtonText = "Continue",
-                        ConfirmButtonEvent = () => _continueSolvingFlag.SetResult(false),
-
-                        ShowCancelButton = true,
-                        CancelButtonText = "Stop",
-                        CancelButtonEvent = () => _continueSolvingFlag.SetResult(true)
-                    });
-                });
-
-                this.Log("Waiting for continue response");
-                _abort = await _continueSolvingFlag.Task;
-                this.Log("Response: " + _abort);
-                _cycles = _abort ? _cycleLimit : 0;
-            }
+            await IncrementStepsAsync();
         }
-        while (!board.ValidateSolved() && _cycles < _cycleLimit);
+        while (!board.ValidateSolved() && !_abort);
     }
     private int GetSquareScore(ISquare changed, int boardSize)
     {
@@ -462,7 +453,7 @@ public class Solver : MonoBehaviour
             this.Log((depth == -1 ? "" : $"({depth}) ") + message);
         }
     }
-    private IEnumerator Step(float waitTime)
+    private IEnumerator StepThrough(float waitTime)
     {
         if (_stepThrough)
         {
@@ -474,9 +465,10 @@ public class Solver : MonoBehaviour
             yield return new WaitForSeconds(waitTime);
         }
     }
-    private IEnumerator WaitForInstruction()
+    private IEnumerator IncrementSteps()
     {
-        if (Modal.Instance)
+        _steps++;
+        if (_steps >= _stepLimit)
         {
             int answer = 0;
             Modal.ShowModal(new Modal.ModalData()
@@ -497,13 +489,76 @@ public class Solver : MonoBehaviour
 
             if (answer == 1)
             {
-                _cycles = 0;
+                _steps = 0;
                 _abort = false;
             }
             else
             {
-                _cycles = _cycleLimit;
+                _steps = _stepLimit;
+                _abort = true;
             }
+        }
+        else
+        {
+            yield return null;
+        }
+    }
+    private async Task IncrementStepsAsync()
+    {
+        _steps++;
+        if (_steps >= _stepLimit)
+        {
+            _continueSolvingFlag = new TaskCompletionSource<bool>();
+            _asyncActions.Enqueue(() =>
+            {
+                Modal.ShowModal(new Modal.ModalData()
+                {
+                    Title = "No Solution Found",
+                    Body = "The solver couldn't find a solution fast enough. Keep trying or stop it now?",
+
+                    ShowConfirmButton = true,
+                    ConfirmButtonText = "Continue",
+                    ConfirmButtonEvent = () => _continueSolvingFlag.SetResult(false),
+
+                    ShowCancelButton = true,
+                    CancelButtonText = "Stop",
+                    CancelButtonEvent = () => _continueSolvingFlag.SetResult(true)
+                });
+            });
+
+            this.Log("Waiting for continue response");
+            _abort = await _continueSolvingFlag.Task;
+            this.Log("Response (True is Abort): " + _abort);
+            _steps = _abort ? _stepLimit : 0;
+        }
+    }
+    private IEnumerator SafeRun(IEnumerator routine, System.Action OnError = null)
+    {
+        while (true)
+        {
+            object current;
+            try
+            {
+                if (!routine.MoveNext())
+                    yield break;
+                current = routine.Current;
+            }
+            catch (System.Exception e)
+            {
+                this.LogError("An error occurred in the solver: " + e);
+                OnError?.Invoke();
+
+                Modal.ShowModal(new Modal.ModalData()
+                {
+                    Title = "Something went Wrong",
+                    Body = "The solver encountered an error",
+                    ShowConfirmButton = true,
+                    TimeoutTime = 30f
+                });
+
+                yield break;
+            }
+            yield return current;
         }
     }
 }
