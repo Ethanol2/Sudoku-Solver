@@ -2,12 +2,12 @@ To do
 - Implement trackpad for mobile
 - Better gif solution!
 - Add filters to the board selection menu
-- Add a timer to game ui
-- Add a confirmation modal to the solve button
-- Add the "how to play" to the selection menu
-- Add a "You win!" modal when you finish a game
 
 To Done
+- Add the "how to play" to the selection menu
+- Add a "You win!" modal when you finish a game
+- Add a confirmation modal to the solve button
+- Add a timer to game ui
 - Fix stop solver button. Doesn't stop the coroutine fast enough. Alternatively add a button state that says "Stopping...". Either way, needs to be faster
 - Implement "Continue" button for solver properly
 - Fix tooltip. Sometimes tooltip window doesn't snap to the mouse properly

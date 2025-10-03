@@ -123,7 +123,8 @@ public class Modal : MonoBehaviour
         return false;
     }
 
-    #nullable enable
+#nullable enable
+    [System.Serializable]
     public struct ModalData
     {
         public string Title;

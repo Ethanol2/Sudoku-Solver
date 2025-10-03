@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using EditorTools;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -63,6 +64,7 @@ public class Square : MonoBehaviour, ISquare
     public int GroupCount => _groups.Length;
 
     // Events
+    public UnityEvent ButtonEvent => _button.onClick;
     public event System.Action<int, int> OnChanged;
 
     void OnValidate()

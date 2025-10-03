@@ -142,6 +142,7 @@ public class Board : MonoBehaviour, IBoard
 
                 int number = state.Numbers[_boardSize - 1 - y, x];
                 newSquare.Init(this, number, number != 0);
+                newSquare.ButtonEvent.AddListener(() => Invoke(nameof(CheckPlayerWin), 0.1f));
 
                 RectTransform squareRect = newSquare.transform as RectTransform;
                 SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);
@@ -185,6 +186,22 @@ public class Board : MonoBehaviour, IBoard
     }
     public void ToggleNoteMode() => ToggleNoteMode(!_noteMode);
     public void SetNoteNumber(int number) => _noteNumber = number;
+    public void CheckPlayerWin()
+    {
+        _validated = false;
+        if (ValidateSolved())
+        {
+            this.Log("Player has solved the board!");
+            Modal.ShowModal(new Modal.ModalData()
+            {
+                Title = "Congratulations!",
+                Body = "You have solved the puzzle!",
+                ShowConfirmButton = true,
+                ConfirmButtonText = "Ok",
+                ShowCancelButton = false,
+            });
+        }
+    }
 
     // Interface
     public bool ValidateSolved()

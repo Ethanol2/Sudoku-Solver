@@ -105,6 +105,26 @@ public class Solver : MonoBehaviour
             yield break;
         }
 
+        int areYouSureResponse = 0;
+        Modal.ShowModal(new Modal.ModalData()
+        {
+            Title = "Are you sure?",
+            Body = "Solving a board will try to fill in all empty squares. This cannot be undone. Are you sure you want to continue?",
+
+            ShowConfirmButton = true,
+            ConfirmButtonText = "Yes",
+            ConfirmButtonEvent = () => areYouSureResponse = 1,
+
+            ShowCancelButton = true,
+            CancelButtonText = "No",
+            CancelButtonEvent = () => areYouSureResponse = 2
+        });
+
+        yield return new WaitWhile(() => areYouSureResponse == 0);
+
+        if (areYouSureResponse == 2)
+            yield break;
+
         _working = true;
         _steps = 0;
         _abort = false;
