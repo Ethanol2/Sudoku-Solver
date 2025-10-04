@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UIRangeSliderNamespace;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -9,6 +10,11 @@ public class GridMenu : MonoBehaviour
 {
     [Header("Puzzles to Import")]
     [SerializeField] private PuzzleBook[] _puzzleBooks;
+
+    [Header("Filters")]
+    [SerializeField] UIRangeSlider _difficultySlider;
+    [SerializeField] private Button _sortButton;
+    [SerializeField] private TMP_Text _sortButtonText;
 
     [Header("Prefabs")]
     [SerializeField] private GridLayoutGroup _buttonsParent;
@@ -26,6 +32,8 @@ public class GridMenu : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private List<IBoard.State> _allStates = new List<IBoard.State>();
+    [SerializeField] private List<IBoard.State> _filteredStates = new List<IBoard.State>();
+    [SerializeField] private bool _sortHardFirst = false;
     [SerializeField] private int _currentPage = 0;
 
     private Board _board;
@@ -50,8 +58,26 @@ public class GridMenu : MonoBehaviour
 
         _returnToMenuButton.onClick.AddListener(OnReturnToMenu);
 
-        _pageNumberText.text = $"{_currentPage + 1} / {_allStates.Count / _pageButtons.Length}";
-        SortByDifficulty();
+        if (PlayerPrefs.HasKey("SortHardFirst"))
+            _sortHardFirst = PlayerPrefs.GetInt("SortHardFirst") == 1;
+        _sortButtonText.text = _sortHardFirst ? "Hard to Easy" : "Easy to Hard";
+
+        if (PlayerPrefs.HasKey("DifficultyMin"))
+            _difficultySlider.valueMin = PlayerPrefs.GetFloat("DifficultyMin");
+        if (PlayerPrefs.HasKey("DifficultyMax"))
+            _difficultySlider.valueMax = PlayerPrefs.GetFloat("DifficultyMax");
+
+        SortByDifficulty(_sortHardFirst);
+    }
+    void OnEnable()
+    {
+        _difficultySlider.onHandlesReleased.AddListener(UpdatePageButtons);
+        _sortButton.onClick.AddListener(ToggleSortOrder);
+    }
+    void OnDestroy()
+    {
+        _difficultySlider.onHandlesReleased.RemoveListener(UpdatePageButtons);
+        _sortButton.onClick.RemoveListener(ToggleSortOrder);
     }
 
     private void OnBoardSelected(IBoard.State state)
@@ -75,19 +101,40 @@ public class GridMenu : MonoBehaviour
 
         _solver.OnBoardDestroyed();
     }
-    private void UpdatePageButtons()
+    public void ToggleSortOrder()
     {
+        _sortHardFirst = !_sortHardFirst;
+        PlayerPrefs.SetInt("SortHardFirst", _sortHardFirst ? 1 : 0);
+        _sortButtonText.text = _sortHardFirst ? "Hard to Easy" : "Easy to Hard";
+        SortByDifficulty(_sortHardFirst);
+    }
+    private void UpdatePageButtons(float diffMin, float diffMax)
+    {
+        PlayerPrefs.SetFloat("DifficultyMin", diffMin);
+        PlayerPrefs.SetFloat("DifficultyMax", diffMax);
+
+        _filteredStates.Clear();
+        foreach (IBoard.State state in _allStates)
+            if (state.Difficulty >= diffMin && state.Difficulty <= diffMax)
+                _filteredStates.Add(state);
+
+        int lastPage = Mathf.Max(1, _filteredStates.Count / _pageButtons.Length);
+        if (_currentPage >= lastPage)
+            _currentPage = lastPage - 1;
+        _pageNumberText.text = $"{_currentPage + 1} / {lastPage}";
+
         for (int i = _currentPage * _pageButtons.Length, k = 0; k < _pageButtons.Length; i++, k++)
         {
-            if (i >= _allStates.Count)
+            if (i >= _filteredStates.Count)
                 _pageButtons[k].gameObject.SetActive(false);
             else
             {
                 _pageButtons[k].gameObject.SetActive(true);
-                _pageButtons[k].Board = _allStates[i];
+                _pageButtons[k].Board = _filteredStates[i];
             }
         }
     }
+    public void UpdatePageButtons() => UpdatePageButtons(_difficultySlider.valueMin, _difficultySlider.valueMax);
 
     public void SortByDifficulty(bool hardFirst = false)
     {

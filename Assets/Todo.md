@@ -1,9 +1,9 @@
 To do
 - Implement trackpad for mobile
 - Better gif solution!
-- Add filters to the board selection menu
 
 To Done
+- Add filters to the board selection menu
 - Add the "how to play" to the selection menu
 - Add a "You win!" modal when you finish a game
 - Add a confirmation modal to the solve button

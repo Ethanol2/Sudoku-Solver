@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Image))]
+//[RequireComponent(typeof(Image))]
 public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField, TextArea] private string _tooltip = "This is an empty tooltip. Should probably fill this with something";

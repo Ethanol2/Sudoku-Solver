@@ -33,7 +33,7 @@ public class BoardButton : MonoBehaviour
             else if (value > 0f)
                 labelText = "Easy";
 
-            _diffText.text = labelText;
+            _diffText.text = labelText + $" ({value:0.0})";
         }
     }
     public bool Solved { set { if (_solvedText) _solvedText.text = value ? "Solved" : ""; } }
