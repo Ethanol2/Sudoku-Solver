@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class Board : MonoBehaviour, IBoard
 {
+    // Static
+    public static event System.Action OnBoardWon;
+
     // Inspector
 
     [Header("Game Settings")]
@@ -195,11 +198,13 @@ public class Board : MonoBehaviour, IBoard
             Modal.ShowModal(new Modal.ModalData()
             {
                 Title = "Congratulations!",
-                Body = "You have solved the puzzle!",
+                Body = "You've solved the puzzle!",
                 ShowConfirmButton = true,
                 ConfirmButtonText = "Ok",
                 ShowCancelButton = false,
             });
+
+            OnBoardWon?.Invoke();
         }
     }
 

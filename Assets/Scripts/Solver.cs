@@ -8,6 +8,10 @@ using UnityEngine.Events;
 
 public class Solver : MonoBehaviour
 {
+    // Static
+    public static event System.Action OnBoardSolved;
+
+    // Inspector
     [SerializeField] private Board _board;
     [SerializeField] private int _stepLimit = 200000;
     [SerializeField] private float _stepPauseTime = 0.1f;
@@ -173,7 +177,15 @@ public class Solver : MonoBehaviour
 #endif
         }
 
-        this.Log("Board Solved: " + board.ValidateSolved());
+        if (board.ValidateSolved())
+        {
+            OnBoardSolved?.Invoke();
+            this.Log("Board Solved: True");
+        }
+        else
+        {
+            this.Log("Board Solved: False");
+        }
 
         _working = false;
 
@@ -239,7 +251,15 @@ public class Solver : MonoBehaviour
             board.SetState(dBoard);
         }
 
-        this.Log("Generation Successful: " + board.ValidateSolved());
+        if (board.ValidateSolved())
+        {
+            OnBoardSolved?.Invoke();
+            this.Log("Board Generated: True");
+        }
+        else
+        {
+            this.Log("Board Generated: False");
+        }
 
         _working = false;
 

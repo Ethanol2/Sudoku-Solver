@@ -13,6 +13,17 @@ public class GameTimer : MonoBehaviour
 
     private float _accumulator = 0f;
 
+    void OnEnable()
+    {
+        Board.OnBoardWon += Pause;
+        Solver.OnBoardSolved += Pause;
+    }
+    void OnDisable()
+    {
+        Board.OnBoardWon -= Pause;
+        Solver.OnBoardSolved -= Pause;
+    }
+
     void Update()
     {
         if (_paused) return;
@@ -48,7 +59,10 @@ public class GameTimer : MonoBehaviour
     {
         _timer = 0;
         _accumulator = 0f;
+        Paused = false;
         UpdateText();
     }
+    public void Pause() => Paused = true;
+    public void Unpause() => Paused = false;
 
 }
