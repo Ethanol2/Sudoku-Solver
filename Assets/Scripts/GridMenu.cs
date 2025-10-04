@@ -68,16 +68,16 @@ public class GridMenu : MonoBehaviour
             _difficultySlider.valueMax = PlayerPrefs.GetFloat("DifficultyMax");
 
         SortByDifficulty(_sortHardFirst);
+
+        _sortButton.onClick.AddListener(ToggleSortOrder);
     }
     void OnEnable()
     {
         _difficultySlider.onHandlesReleased.AddListener(UpdatePageButtons);
-        _sortButton.onClick.AddListener(ToggleSortOrder);
     }
     void OnDestroy()
     {
         _difficultySlider.onHandlesReleased.RemoveListener(UpdatePageButtons);
-        _sortButton.onClick.RemoveListener(ToggleSortOrder);
     }
 
     private void OnBoardSelected(IBoard.State state)
