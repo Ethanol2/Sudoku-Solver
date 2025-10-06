@@ -106,9 +106,19 @@ The original solver and the first version of this one were both written as `Coro
 
 Obviously I could just write a normal recursive method and let it go, but locking up your system is a great way to lose time and progress. So the method would have to be `async`. This decision led to the rewrite that resulted in the `IBoard` and `ISquare` interfaces. One version of their implementations for visualizing the algorithm, and the other for the `async` solver.
 
-## Building the UI
+## The UI
 
-My next task is to wrap my functional but ugly programmer UI into something presentable.
+The ui for this project is mainly to show off the implemented features, namely the solver. Playing a full game of Sudoku is definitely possible, I even think with some work it could even be a very intuitive and engaging medium for the puzzle, but that wasn't the focus in this instance.
+
+That said, I also wanted to make sure the interface was solid and easy to navigate. I decided against creating my own UI assets and imported a free mobile game asset pack. This skips over a lot of the work related to theming and asset cohesion. 
+
+![Asset pack sprite sheet](/Assets/Belevich/Hyper casual mobile GUI/Sprites/buttons.png)
+
+The layout was a point that I struggled with for a few days. My aspirations for this project is for a variation of it to be published to the Google Play Store, so I originally gravitated towards a mobile-focused design. For example the board selection menu was orginally going to be a swipe menu, but I found it frustrating to work with and use. So I ultimately decided to keep it simple, which allows the current iteration to perform well on most platforms.
+
+The game screen layout came more naturally. The solver would get an eye catching position at the top of the screen, with the note controls on the bottom. I'm not a huge fan of the giant number pad, but it's functional and easy to use. 
+
+I also decided it was important for the instructions to have a prominent position on the interface. Both for people just taking a look at my portfolio, and for people who might actually want to play the game, since I'm intentionally deviating from the design that seems to be standard on the Google app store. A friend suggested I also include an instructions button on the main menu.
 
 ## Sources
 - Massive thanks to grantm for having this [repo of boards](https://github.com/grantm/sudoku-exchange-puzzle-bank) available
