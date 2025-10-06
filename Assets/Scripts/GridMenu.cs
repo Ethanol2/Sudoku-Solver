@@ -20,6 +20,9 @@ public class GridMenu : MonoBehaviour
     [SerializeField] private GridLayoutGroup _buttonsParent;
     [SerializeField] private Board _boardPrefab;
 
+    [Header("Board Settings")]
+    [SerializeField] private bool _useBoardStartEffect = true; 
+
     [Header("References")]
     [SerializeField] private Solver _solver;
     [SerializeField] private RectTransform _gameView;
@@ -84,6 +87,7 @@ public class GridMenu : MonoBehaviour
     {
         _board = GameObject.Instantiate(_boardPrefab);
 
+        _board.UseStartEffect = _useBoardStartEffect;
         _board.Init(state);
 
         _boardsSelectorView.gameObject.SetActive(false);

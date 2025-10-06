@@ -1,6 +1,7 @@
 To do
 - Implement trackpad for mobile
 - Better gif solution!
+- Change menu button sprite
 
 To Done
 - Add filters to the board selection menu

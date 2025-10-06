@@ -291,8 +291,8 @@ TextureImporter:
       name: popups_9
       rect:
         serializedVersion: 2
-        x: 5069
-        y: 1994
+        x: 5071
+        y: 1993
         width: 481
         height: 136
       alignment: 0
@@ -613,6 +613,28 @@ TextureImporter:
       bones: []
       spriteID: 863ad86879a48a719a82d0153a64e5fd
       internalID: 1724008713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popups_1
+      rect:
+        serializedVersion: 2
+        x: 3378
+        y: 755
+        width: 481
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 50, y: 45, z: 50, w: 45}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 717b28f6ba90b077f9f363e9a1b5c840
+      internalID: -1199931280
       vertices: []
       indices: 
       edges: []

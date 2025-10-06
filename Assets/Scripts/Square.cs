@@ -16,6 +16,9 @@ public class Square : MonoBehaviour, ISquare
     [SerializeField] private TMP_Text _numberDisplay;
     [SerializeField] private AnyClickButton _button;
 
+    [Space]
+    [SerializeField] private Color _lockedButtonColor = Color.white;
+
     [Header("Debug")]
     [SerializeField] private int _number = 0;
     [SerializeField] private Board _board;
@@ -50,7 +53,7 @@ public class Square : MonoBehaviour, ISquare
         }
     }
     public ISquare.Notepad Notes => _notes;
-    public Color Colour { get => _button.image.color; set => _button.image.color = value; }
+    public Color Colour { get => _button.image.color; set => _button.image.color = value * (_locked ? _lockedButtonColor : Color.white); }
     public bool Locked
     {
         get => _locked;
@@ -58,6 +61,7 @@ public class Square : MonoBehaviour, ISquare
         {
             _locked = value;
             _button.targetGraphic.raycastTarget = _numberDisplay.raycastTarget = !_locked;
+            _button.targetGraphic.color = _locked ? _lockedButtonColor : Color.white;
             _numberDisplay.fontStyle = _locked ? FontStyles.Bold : FontStyles.Normal;
         }
     }
@@ -72,6 +76,11 @@ public class Square : MonoBehaviour, ISquare
         _button = this.GetComponentInChildren<AnyClickButton>();
         Debug.Assert(_button);
         Debug.Assert(_notesParent);
+
+        if (Application.isPlaying)
+        {
+            Locked = _locked;
+        }
     }
     void OnEnable()
     {

@@ -20,6 +20,7 @@ public class Board : MonoBehaviour, IBoard
     [SerializeField] private Color _warningColour = Color.red;
     [SerializeField] private float _quadrantAnchorPadding = 0.01f;
     [SerializeField] private float _squareAnchorPadding = 0.005f;
+    [SerializeField] private bool _useStartEffect = true;
 
     [Header("References")]
     [SerializeField] private Square _squarePrefab;
@@ -48,6 +49,7 @@ public class Board : MonoBehaviour, IBoard
     public Color WarningColour => _warningColour;
     public bool NoteMode => _noteMode;
     public int NoteNumber => _noteNumber;
+    public bool UseStartEffect { get => _useStartEffect; set => _useStartEffect = value; }
 
     public SquareGroup[,] Quadrants => _quadrants;
     public SquareGroup[] Rows => _rows;
@@ -87,6 +89,11 @@ public class Board : MonoBehaviour, IBoard
 #endif
     }
     public void Init(IBoard.State state)
+    {
+        if (!_initialized)
+            StartCoroutine(InitRoutine(state));
+    }
+    public IEnumerator InitRoutine(IBoard.State state)
     {
         _boardSize = state.Numbers.GetLength(0);
 
@@ -143,12 +150,14 @@ public class Board : MonoBehaviour, IBoard
                 Square newSquare = GameObject.Instantiate(_squarePrefab, canvasQuadrants[qX, qY]);
                 newSquare.name = $"({x}, {y})";
 
+                RectTransform squareRect = newSquare.transform as RectTransform;
+                SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);
+
+                if (_useStartEffect) yield return null;
+
                 int number = state.Numbers[_boardSize - 1 - y, x];
                 newSquare.Init(this, number, number != 0);
                 newSquare.ButtonEvent.AddListener(() => Invoke(nameof(CheckPlayerWin), 0.1f));
-
-                RectTransform squareRect = newSquare.transform as RectTransform;
-                SetAnchors(squareRect, x - (_squareCount.x * qX), y - (_squareCount.y * qY), _squareCount.x, _squareCount.y, _squareAnchorPadding);
 
                 _quadrants[qX, qY].PushSquare(newSquare, false);
                 _columns[x].PushSquare(newSquare, false);
