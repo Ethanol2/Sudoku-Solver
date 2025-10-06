@@ -16920,12 +16920,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tooltip: 'When slow mode is enabled the solver will run on a coroutine and solve
-    the board more slowly. Otherwise the solver runs in async.
+    the board more slowly. Otherwise the solver runs in async*.
 
 
-    Warning: The
-    solver in slow mode can be A LOT slower. This should only be used to observe
-    how it works.'
+    *Except on
+    WebGL, which always uses a coroutine with no delays.
+
+
+    Warning: The solver
+    in slow mode can be A LOT slower. This should only be used to observe how it
+    works.'
   _timeToTooltip: 1
   _positionPadding: {x: 4, y: -4}
   _closeOnClick: 1

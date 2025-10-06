@@ -84,7 +84,12 @@ public class Solver : MonoBehaviour
     public void OnBoardDestroyed()
     {
         StopAllCoroutines();
+
         _working = false;
+        _abort = true;
+        _board = null;
+
+        OnSolverFinished_UE.Invoke();
     }
 
     public void SolveBoard()
@@ -142,8 +147,7 @@ public class Solver : MonoBehaviour
             yield return SafeRun(SolveRecursiveSlow(board, _stepPauseTime));
         else
         {
-#if false
-//#if UNITY_WEBGL
+#if UNITY_WEBGL
             yield return SafeRun(SolveRecursiveSlow(board, 0f));
 #else
             DataOnlyBoard dBoard = board;
@@ -221,6 +225,9 @@ public class Solver : MonoBehaviour
         else
         {
 
+#if UNITY_WEBGL
+            yield return SafeRun(SolveRecursiveSlow(board, 0f));
+#else
             DataOnlyBoard dBoard = board;
 
             _asyncActions.Clear();
@@ -249,6 +256,7 @@ public class Solver : MonoBehaviour
             }
 
             board.SetState(dBoard);
+#endif
         }
 
         if (board.ValidateSolved())
@@ -282,6 +290,9 @@ public class Solver : MonoBehaviour
             _abort = true;
             yield break;
         }
+
+        if (board.HasViolation())
+            yield break;
 
         do
         {
@@ -378,6 +389,9 @@ public class Solver : MonoBehaviour
             _abort = true;
             return;
         }
+
+        if (board.HasViolation())
+            return;
 
         do
         {
