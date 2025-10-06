@@ -170,7 +170,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Clues are marked by having <b>bold</b> numbers. They can't be changed
+  m_text: Clues are marked by being coloured beige and having <b>bold</b> numbers.
+    They can't be changed
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1157,6 +1158,7 @@ MonoBehaviour:
   _warningColour: {r: 1, g: 0, b: 0, a: 1}
   _quadrantAnchorPadding: 0.01
   _squareAnchorPadding: 0.005
+  _useStartEffect: 1
   _squarePrefab: {fileID: 0}
   _quadrantsParent: {fileID: 0}
   _initialized: 1

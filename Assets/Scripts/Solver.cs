@@ -454,7 +454,7 @@ public class Solver : MonoBehaviour
 
                     await SolveRecursive(board, recursionDepth + 1);
 
-                    if (_abort || _board.ValidateSolved())
+                    if (_abort || board.ValidateSolved())
                         return;
 
                     board.SetState(state);

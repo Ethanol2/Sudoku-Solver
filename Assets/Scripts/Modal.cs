@@ -1,6 +1,7 @@
 using EditorTools;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class Modal : MonoBehaviour
@@ -17,6 +18,10 @@ public class Modal : MonoBehaviour
     [SerializeField, HideInInspector] private TMP_Text _confirmButtonText;
     [SerializeField] private Button _cancelButton;
     [SerializeField, HideInInspector] private TMP_Text _cancelButtonText;
+
+    [Space]
+    public UnityEvent OnOpen;
+    public UnityEvent OnClose;
 
     public static Modal Instance => _instance;
 
@@ -65,6 +70,7 @@ public class Modal : MonoBehaviour
 
         OnConfirm?.Invoke();
         _passedConfrimAction?.Invoke();
+        OnClose?.Invoke();
     }
     private void OnCancelButtonClicked()
     {
@@ -72,6 +78,7 @@ public class Modal : MonoBehaviour
 
         OnCancel?.Invoke();
         _passedCancelAction?.Invoke();
+        OnClose?.Invoke();
     }
     private void Timeout()
     {
@@ -79,6 +86,7 @@ public class Modal : MonoBehaviour
 
         _passedTimeoutAction?.Invoke();
         OnTimeout?.Invoke();
+        OnClose?.Invoke();
     }
 
     public void Show(ModalData data)
@@ -109,6 +117,7 @@ public class Modal : MonoBehaviour
             Invoke(nameof(Timeout), data.TimeoutTime);
         }
 
+        OnOpen?.Invoke();
         _modalPanel.SetActive(true);
     }
 

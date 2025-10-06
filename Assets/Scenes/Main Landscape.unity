@@ -2132,6 +2132,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1484424568}
+        m_TargetAssemblyTypeName: GameTimer, Assembly-CSharp
+        m_MethodName: Unpause
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &215702405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4624,6 +4636,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+      - m_Target: {fileID: 1484424568}
+        m_TargetAssemblyTypeName: GameTimer, Assembly-CSharp
+        m_MethodName: Pause
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
 --- !u!114 &477996759
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5101,7 +5125,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 445468429}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.16385949
+  m_Size: 0.1560662
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -8982,7 +9006,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1850659663816867424, guid: 2463433acebd7a7e59a7f0f56d0006bc, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 173.11136
+      value: 165.93573
       objectReference: {fileID: 0}
     - target: {fileID: 1850659663816867424, guid: 2463433acebd7a7e59a7f0f56d0006bc, type: 3}
       propertyPath: m_SizeDelta.y
@@ -9010,7 +9034,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4589096281758057564, guid: 2463433acebd7a7e59a7f0f56d0006bc, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 173.11136
+      value: 165.93573
       objectReference: {fileID: 0}
     - target: {fileID: 4589096281758057564, guid: 2463433acebd7a7e59a7f0f56d0006bc, type: 3}
       propertyPath: m_SizeDelta.y

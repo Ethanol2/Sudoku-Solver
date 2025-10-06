@@ -17,11 +17,23 @@ public class GameTimer : MonoBehaviour
     {
         Board.OnBoardWon += Pause;
         Solver.OnBoardSolved += Pause;
+
+        if (Modal.Instance)
+        {
+            Modal.Instance.OnOpen.AddListener(Pause);
+            Modal.Instance.OnClose.AddListener(Unpause);
+        }
     }
     void OnDisable()
     {
         Board.OnBoardWon -= Pause;
         Solver.OnBoardSolved -= Pause;
+
+        if (Modal.Instance)
+        {
+            Modal.Instance.OnOpen.RemoveListener(Pause);
+            Modal.Instance.OnClose.RemoveListener(Unpause);
+        }
     }
 
     void Update()
