@@ -112,7 +112,7 @@ The ui for this project is mainly to show off the implemented features, namely t
 
 That said, I also wanted to make sure the interface was solid and easy to navigate. I decided against creating my own UI assets and imported a free mobile game asset pack. This skips over a lot of the work related to theming and asset cohesion. 
 
-![Asset pack sprite sheet](/Assets/Belevich/Hyper casual mobile GUI/Sprites/buttons.png)
+![Asset pack sprite sheet](/Assets/Belevich/Hyper-casual-mobile-GUI/Sprites/buttons.png)
 
 The layout was a point that I struggled with for a few days. My aspirations for this project is for a variation of it to be published to the Google Play Store, so I originally gravitated towards a mobile-focused design. For example the board selection menu was orginally going to be a swipe menu, but I found it frustrating to work with and use. So I ultimately decided to keep it simple, which allows the current iteration to perform well on most platforms.
 
@@ -124,4 +124,4 @@ I also decided it was important for the instructions to have a prominent positio
 - Massive thanks to grantm for having this [repo of boards](https://github.com/grantm/sudoku-exchange-puzzle-bank) available
 - While I didn't ultimately use it, this was very interesting. [Sudoku Creation and Grading by Andrew C. Stuart](https://www.sudokuwiki.org/Sudoku_Creation_and_Grading.pdf)
 - [This article by David Carmel](https://medium.com/@davidcarmel/solving-sudoku-by-heuristic-search-b0c2b2c5346e) got me through a roadblock when writing the solver.
-- ["Tips on Solving Sudoku Puzzles](https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php) is listed as a source in David Carmel's article. Also very helpful.
+- [Tips on Solving Sudoku Puzzles](https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php) is listed as a source in David Carmel's article. Also very helpful.
